@@ -7,7 +7,7 @@ var stylus = require('stylus');
 var utils = require('../lib/utils.js');
 var opts = utils.opts;
 var glob = utils.glob;
-var srcdir = fs.existsSync('./hearth/') ? './hearth' : './src';  // For Fireplace compat
+var srcdir = require('../lib/info.js').src_dir();
 
 process.title = 'damper';
 
@@ -171,6 +171,10 @@ function watch(globpath, ext, command) {
             console.log('Watching ' + filepaths.length + ' ' + ext + ' files.');
         }
     };
+    if (!fs.existsSync(globpath)) {
+        console.warn('Skipping non-existing path: ' + globpath);
+        return;
+    }
     if (globpath.substr(1).indexOf('.') > -1) {
         cb(null, [globpath]);
     } else {

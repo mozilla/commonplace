@@ -7,8 +7,9 @@ function help() {
         '',
         'Commands:',
         '  install      Run this command to instantiate commonplace.',
-        '  update       This command will update commonplace modules.'
-
+        '  update       This command will update commonplace modules.',
+        '  langpacks    This command will generate langpacks out of `.po` files.',
+        '  clean        Run this to clean up static files, templates and langpacks.'
     ].join('\n'));
 }
 
@@ -27,6 +28,7 @@ var path = require('path');
 
 var info = require('../lib/info');
 var utils = require('../lib/utils');
+var srcdir = require('../lib/info.js').src_dir()
 
 function copy_dir(src, dest) {
     // `dest` is expected to be the path to a directory.
@@ -83,6 +85,53 @@ function copy_dir(src, dest) {
 
 }
 
+function clean() {
+    var targets = ['_tmp',
+        'src/templates.js',
+        'src/media/css/include.css',
+        'src/media/js/include.js',
+        'src/locales/'
+    ];
+    targets.forEach(function(path) {
+        if (path.substr(1).indexOf('.') !== -1) {
+            utils.removeFile(path);
+        } else {
+            utils.rmdirRecursive(path);
+        }
+    });
+
+    utils.glob('src/media/css/', '.styl.css', function(err, filepaths) {
+        if (err) {
+            console.warn('`src/media/css` does not exist. Skipping.');
+            return;
+        }
+        filepaths.forEach(function(filepath) {
+            utils.removeFile(filepath);
+        });
+    });
+}
+
+function generate_langpacks() {
+    var process_file = require('../lib/generate_langpacks.js').process_file;
+
+    var langpacks_path = srcdir + '/locales/';
+    if (!fs.existsSync(langpacks_path)) {
+        console.log('Langpacks path does not exist. Creating: ' + langpacks_path);
+        fs.mkdirSync(langpacks_path);
+    }
+    utils.glob('locale', '.po', function(err, filepaths) {
+        if (err) {
+            console.warn('Oops. Maybe `locale/` does not exist.\n' +
+                'Failed to generate langpacks.');
+            return;
+        }
+        filepaths.forEach(function(filepath) {
+            var path_regex = /locale\/([^\/]+?)\/LC_MESSAGES\/(.+?).po/;
+            var match = path_regex.exec(filepath);
+            process_file(filepath, match[1], langpacks_path + match[1] + '.js');
+        });
+    });
+}
 
 switch (argv[0]) {
     case 'install':
@@ -91,7 +140,7 @@ switch (argv[0]) {
         console.log('Installing Commonplace...');
         console.log('Source:       ' + commonplace_src);
         console.log('Destination:  ' + local_src);
-        
+
         var existing_manifest = path.resolve(local_src, '.commonplace');
         if (fs.existsSync(existing_manifest)) {
             var version = JSON.parse(fs.readFileSync(existing_manifest)).version;
@@ -104,9 +153,9 @@ switch (argv[0]) {
                 console.warn('Existing commonplace installation found. Overwriting.');
             }
         }
-        
+
         copy_dir(commonplace_src, local_src);
-        
+
         // Write a commonplace manifest.
         fs.writeFile(
             path.resolve(local_src, '.commonplace'),
@@ -140,8 +189,13 @@ switch (argv[0]) {
     case 'help':
         help();
         break;
+    case 'clean':
+        clean();
+        break;
+    case 'langpacks':
+        generate_langpacks();
+        break;
     default:
         console.error('Unrecognized command "' + argv[0] + '"');
         help();
 }
-
