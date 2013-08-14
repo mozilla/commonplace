@@ -23,9 +23,9 @@ build
 dist
 src/locales/*.js
 src/media/css/include.css
+src/media/js/include.js
 src/media/include.css
 src/media/include.js
-src/media/js/include.js
 src/templates.js
 node_modules
 npm-debug.log

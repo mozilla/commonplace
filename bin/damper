@@ -2,13 +2,13 @@
 
 var fs = require('fs');
 var http = require('http');
+var path = require('path');
+
 var stylus = require('stylus');
 
 var utils = require('../lib/utils.js');
 var info = require('../lib/info.js');
 
-var opts = utils.opts;
-var glob = utils.glob;
 var src_dir = require('../lib/info.js').src_dir();
 
 process.title = 'damper';
@@ -35,150 +35,111 @@ info.check_version(
     }
 );
 
-var opts = opts(process.argv.slice(2),
-                {host: '0.0.0.0', port: '8675', compile: false});
+var opts = utils.opts(process.argv.slice(2),
+                      {host: '0.0.0.0', port: '8675'});
 
-if (!opts.compile) {
-    // Here's the local server.
-    http.createServer(function(request, response) {
+// Here's the local server.
+http.createServer(function(request, response) {
 
-        var now = new Date();
+    var now = new Date();
 
-        console.log(
-            '[' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + '] ' +
-            request.url);
+    console.log(
+        '[' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + '] ' +
+        request.url);
 
-        function writeIndex() {
-            fs.readFile(src_dir + '/index.html', function(error, content) {
-                // We'll assume that you don't delete index.html.
-                response.writeHead(200, {'Content-Type': 'text/html'});
-                response.end(content, 'utf-8');
-            });
-        }
-
-        if (request.url == '/') {
-            return writeIndex();
-        }
-
-        var qindex;
-        if ((qindex = request.url.indexOf('?')) !== -1) {
-            request.url = request.url.substr(0, qindex);
-        }
-
-        var filePath = src_dir + request.url;
-        fs.exists(filePath, function(exists) {
-            if (exists && !fs.statSync(filePath).isDirectory()) {
-                fs.readFile(filePath, function(error, content) {
-                    if (error) {
-                        response.writeHead(500);
-                        response.end();
-                        console.error(error);
-                    } else {
-                        var dot = request.url.lastIndexOf('.');
-                        if (dot > -1) {
-                            var extension = request.url.substr(dot + 1);
-                            response.writeHead(200, {'Content-Type': mimes[extension]});
-                        }
-
-                        response.end(content, 'utf-8');
-                    }
-                });
-            } else {
-                writeIndex();
-            }
+    function writeIndex() {
+        fs.readFile(path.resolve(src_dir, 'index.html'), function(error, content) {
+            // We'll assume that you don't delete index.html.
+            response.writeHead(200, {'Content-Type': 'text/html'});
+            response.end(content, 'utf-8');
         });
+    }
 
-    }).listen(opts.port, opts.host);
+    if (request.url == '/') {
+        return writeIndex();
+    }
 
-    console.log('Server running at http://' + opts.host + ':' + opts.port);
-} else {
-    console.log('Starting compilation...');
-}
+    var qindex;
+    if ((qindex = request.url.indexOf('?')) !== -1) {
+        request.url = request.url.substr(0, qindex);
+    }
 
-var watched_filepaths = [];
+    var url_path = request.url;
+    if (url_path[0] === '/') {
+        url_path = url_path.substr(1);
+    }
+    var filePath = path.resolve(src_dir, url_path);
+    fs.exists(filePath, function(exists) {
+        if (!exists || fs.statSync(filePath).isDirectory()) {
+            writeIndex();
+            return;
+        }
+
+        fs.readFile(filePath, function(err, content) {
+            if (err) {
+                response.writeHead(500);
+                response.end();
+                console.error(err);
+                return;
+            }
+            var dot = request.url.lastIndexOf('.');
+            if (dot > -1) {
+                var extension = request.url.substr(dot + 1);
+                response.writeHead(200, {'Content-Type': mimes[extension]});
+            }
+
+            response.end(content, 'utf-8');
+        });
+    });
+
+}).listen(opts.port, opts.host);
+
+console.log('Server running at http://' + opts.host + ':' + opts.port);
+
 
 function runCommand(command, filepath) {
     switch (command) {
         case 'stylus':
-            filepath = filepath || opts.path;
-
-            var filepathDir = filepath.split('/').slice(0, -1).join('/');
-            fs.readFile(filepath, function (err, data) {
-                data = data.toString();
-                if (err) {
-                    console.error(filepath + ' not found!');
-                    return;
-                }
-                stylus(data)
-                    .set('filename', filepath + '.css')
-                    .set('include css', true)
-                    .include(filepathDir)
-                    .render(function(err, css) {
-                        fs.writeFileSync(filepath + '.css', css);
-                        if (err) console.error(err);
-                    });
+            require('../lib/build').stylus(filepath, function(err, css) {
+                fs.writeFileSync(filepath + '.css', css);
+                if (err) console.error(err);
             });
             break;
         case 'nunjucks':
             console.log('Recompiling templates...');
-            require('../lib/compile').process(
-                src_dir + '/templates',
-                src_dir + '/templates.js'
-            );
+            require('../lib/commonplace').compile({silent: true, only: ['nunjucks']});
             break;
     }
 }
 
 function watch(globpath, ext, command) {
-    var cb = function(err, filepaths) {
-        filepaths.forEach(function(filepath) {
-            watched_filepaths.push(filepath);
-            if (command == 'stylus') {
-                fs.exists(filepath, function(exists) {
-                    if (exists) {
-                        runCommand(command, filepath);
-                    }
-                });
-            }
+    fs.exists(globpath, function(exists) {
+        if (!exists) {
+            console.warn('Skipping absent path: ' + globpath);
+            return;
+        }
 
-            // If we're compiling, we don't want to watch the files.
-            if (opts.compile) {
-                return;
+        var count = 0;
+        globEach(globpath, ext, function(filepath) {
+            count++;
+            if (command == 'stylus') {
+                runCommand(command, filepath);
             }
 
             fs.watchFile(filepath, {interval: 250}, function(curr, prev) {
-                if (curr.mtime.valueOf() != prev.mtime.valueOf() ||
-                    curr.ctime.valueOf() != prev.ctime.valueOf()) {
+                if (curr.mtime.valueOf() !== prev.mtime.valueOf() ||
+                    curr.ctime.valueOf() !== prev.ctime.valueOf()) {
                     console.warn('> ' + filepath + ' changed.');
                     runCommand(command, filepath);
                 }
             });
-
+        }, function() {
+            console.log('Watching ' + count + ' `' + ext + '` files.');
         });
-        if (filepaths.length > 1 && !opts.compile) {
-            console.log('Watching ' + filepaths.length + ' ' + ext + ' files.');
-        }
-    };
-    if (!fs.existsSync(globpath)) {
-        console.warn('Skipping non-existing path: ' + globpath);
-        return;
-    }
-    if (globpath.substr(1).indexOf('.') > -1) {
-        cb(null, [globpath]);
-    } else {
-        glob(globpath, ext, cb);
-    }
+    });
+    utils.globEach(globpath, ext, cb);
 }
 
-if (opts.compile && opts.compile !== true) {
-    runCommand(opts.compile);
-} else {
-    runCommand('nunjucks');
-
-    watch(src_dir + '/media/css', 'styl', 'stylus');
-    watch(src_dir + '/templates', 'html', 'nunjucks');
-
-    // When the builder is updated, recompile the templates.
-    watch(src_dir + '/media/js/builder.js', null, 'nunjucks');
-}
-
+runCommand('nunjucks');
+watch(path.resolve(src_dir, 'media/css'), 'styl', 'stylus');
+watch(path.resolve(src_dir, 'templates'), 'html', 'nunjucks');
