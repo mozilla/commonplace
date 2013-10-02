@@ -1,9 +1,14 @@
 (function() {
 
 var languages = [
-    'bg', 'ca', 'cs', 'de', 'en-US', 'es', 'eu', 'fr', 'ga-IE', 'hr', 'hu', 'it',
-    'ja', 'nl', 'pl', 'pt-BR', 'ru', 'sk', 'zh-TW', 'dbg'
+    'bg', 'ca', 'cs', 'de', 'el', 'en-US', 'es', 'eu', 'fr', 'ga-IE', 'hr',
+    'hu', 'it', 'ja', 'nl', 'pl', 'pt-BR', 'ro', 'ru', 'sk', 'sr', 'sr-Latn',
+    'tr', 'zh-TW', 'dbg'
 ];
+var body_langs;
+if (body_langs = document.body.getAttribute('data-languages')) {
+    languages = JSON.parse(body_langs);
+}
 
 var lang_expander = {
     'en': 'en-US', 'ga': 'ga-IE',
@@ -37,8 +42,8 @@ if (!window.define) {
     }
 
     // Cachebust the .js file for our CDN.
-    var build_id = document.body.dataset.buildIdJs || +new Date();
-    var repo = document.body.dataset.repo;
+    var build_id = document.body.getAttribute('data-buildIdJs') || +new Date();
+    var repo = document.body.getAttribute('data-repo');
     document.write('<script src="/media/' + (repo ? repo + '/' : '') + 'locales/' + locale + '.js?b=' + build_id + '"></script>');
 
 } else {

@@ -31,11 +31,19 @@ yulelog_*
 settings_local.py
 
 locale/
+src/.commonplace
 src/locales/*
 src/media/locales/*
 src/media/css/include.css
 src/media/include.css
 src/media/include.js
+src/media/js/main.js
 src/media/js/include.js
+src/media/js/rewriters.js
+src/media/js/routes.js
+src/media/js/routes_api.js
+src/media/js/settings.js
+src/media/js/settings_local.js
+src/media/js/settings_local_hosted.js
 src/templates.js
 settings_local.js

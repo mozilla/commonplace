@@ -1,4 +1,7 @@
-define('utils', ['jquery', 'underscore'], function($, _) {
+define('utils', ['jquery', 'l10n', 'underscore'], function($, l10n, _) {
+
+    var ngettext = l10n.ngettext;
+
     _.extend(String.prototype, {
         strip: function(str) {
             // Strip all whitespace.
@@ -41,6 +44,20 @@ define('utils', ['jquery', 'underscore'], function($, _) {
         }
         return s.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;')
                 .replace(/'/g, '&#39;').replace(/"/g, '&#34;');
+    }
+
+    function slugify(s, limit) {
+        if (typeof s !== 'string') {
+            return s;
+        }
+        var value = s.toLowerCase().trim()
+                     .replace(/[ _]/g, '-')
+                     .replace(/[^-\w]/g, '')
+                     .replace(/-+/g, '-');
+        if (limit) {
+            value = value.substr(0, limit);  // Cap the slug length.
+        }
+        return value;
     }
 
     function fieldFocused(e) {
@@ -168,11 +185,14 @@ define('utils', ['jquery', 'underscore'], function($, _) {
         '_pd': _pd,
         'baseurl': baseurl,
         'browser': browser,
+        'encodeURIComponent': encodeURIComponent,
+        'decodeURIComponent': decodeURIComponent,
         'escape_': escape_,
         'fieldFocused': fieldFocused,
         'getVars': getVars,
         'initCharCount': initCharCount,
         'querystring': querystring,
+        'slugify': slugify,
         'urlencode': urlencode,
         'urlparams': urlparams,
         'urlunparam': urlunparam,

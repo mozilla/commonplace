@@ -1,4 +1,9 @@
-define('log', ['storage'], function(storage) {
+define('log', ['storage', 'utils'], function(storage, utils) {
+
+    if (!('groupCollapsed' in window.console)) {
+        window.console.groupCollapsed = window.console.group = window.console.log;
+        window.console.groupEnd = function() {};
+    }
 
     var slice = Array.prototype.slice;
     var filter;
@@ -67,7 +72,7 @@ define('log', ['storage'], function(storage) {
     logger.unmentionables = [];
     logger.unmention = function(term) {
         logger.unmentionables.push(term);
-        logger.unmentionables.push(encodeURIComponent(term));
+        logger.unmentionables.push(utils.encodeURIComponent(term));
     };
 
     logs = logger.logs = {};

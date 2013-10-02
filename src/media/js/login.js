@@ -1,6 +1,6 @@
 define('login',
-    ['cache', 'capabilities', 'defer', 'jquery', 'log', 'models', 'notification', 'settings', 'underscore', 'urls', 'user', 'requests', 'z'],
-    function(cache, capabilities, defer, $, log, models, notification, settings, _, urls, user, requests, z) {
+    ['capabilities', 'defer', 'jquery', 'log', 'notification', 'settings', 'underscore', 'urls', 'user', 'requests', 'z'],
+    function(capabilities, defer, $, log, notification, settings, _, urls, user, requests, z) {
 
     var console = log('login');
 
@@ -52,8 +52,8 @@ define('login',
         pending_logins.push(def);
 
         var opt = {
-            termsOfService: '/terms-of-use',
-            privacyPolicy: '/privacy-policy',
+            termsOfService: settings.persona_tos,
+            privacyPolicy: settings.persona_privacy,
             siteLogo: settings.persona_site_logo,
             oncancel: function() {
                 console.log('Persona login cancelled');

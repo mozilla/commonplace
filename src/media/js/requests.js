@@ -64,7 +64,15 @@ define('requests',
 
     Define hooks like this:
 
-    requests.on('hookname', function(xhr) {})
+      requests.on('hookname', function(xhr) {})
+
+    Available hooks:
+    - success: Fired when a request is successful. Same arguments that would
+      be sent to the deferred of the request.
+    - failure: Fired when a request is unsuccessful. Same arguments that would
+      be sent to the deferred of the request.
+    - deprecated: Fired when a request is returned with an API-Status header of
+      "Deprecated".
 
     */
 
@@ -100,9 +108,11 @@ define('requests',
 
         xhr.addEventListener('load', function() {
 
-            if (xhr.getResponseHeader('API-Status') === 'Deprecated') {
-                callHooks('deprecated', [xhr]);
-            }
+            try {
+                if (xhr.getResponseHeader('API-Status') === 'Deprecated') {
+                    callHooks('deprecated', [xhr]);
+                }
+            } catch(e) {}
 
             var statusCode = xhr.status / 100 | 0;
             if (statusCode < 2 || statusCode > 3) {

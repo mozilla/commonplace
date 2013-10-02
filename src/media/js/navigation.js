@@ -5,6 +5,8 @@ define('navigation',
 
     var console = log('nav');
 
+    var encodeURIComponent = utils.encodeURIComponent;
+
     var gettext = l10n.gettext;
     var stack = [
         {path: '/', type: 'root'}
@@ -118,7 +120,6 @@ define('navigation',
                 stack.unshift(state);
             }
 
-            // TODO(fireplace): Make this work with views
             // Does the page have a parent? If so, handle the parent logic.
             if (z.context.parent) {
                 var parent = _.indexOf(_.pluck(stack, 'path'), z.context.parent);

@@ -84,6 +84,15 @@ define('helpers',
         return output;
     };
 
+    // Credit to ngoke and potch.
+    filters.hex2rgba = function(hex, o) {
+        hex = parseInt(hex.substring(hex[0] == '#' ? 1 : 0), 16);
+        return 'rgba(' +
+            (hex >> 16) + ',' +
+            ((hex & 0x00FF00) >> 8) + ',' +
+            (hex & 0x0000FF) + ',' + o + ')';
+    }
+
     safe_filter('stringify', JSON.stringify);
 
     filters.format = require('format').format;
@@ -117,6 +126,7 @@ define('helpers',
         REGIONS: require('settings').REGION_CHOICES_SLUG,
 
         navigator: window.navigator,
+        screen: window.screen,
         language: window.navigator.l10n ? window.navigator.l10n.language : 'en-US'
     };
 
