@@ -15,7 +15,7 @@ define('requests',
     }
 
     function _is_obj(obj) {
-        return obj && obj.constructor === Object;
+        return typeof obj !== 'undefined' && obj.constructor === Object;
     }
 
     function _has_object_props(obj) {
