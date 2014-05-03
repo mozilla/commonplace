@@ -186,7 +186,9 @@ define('builder',
 
                         if (signature.paginate) {
                             pool.done(function() {
-                                make_paginatable(injector, document.getElementById(uid), signature.paginate);
+                                setTimeout(function() {
+                                    make_paginatable(injector, document.getElementById(uid), signature.paginate);
+                                });
                             });
                         }
                         return request;
