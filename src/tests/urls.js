@@ -77,12 +77,14 @@ test('api url', function(done, fail) {
         {
             capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
             routes_api: {'homepage': '/foo/homepage'},
-            routes_api_args: function() {return function() {return function() {return {foo: 'bar'};};};},  // Functions get pre-evaluated.
-            settings: {api_url: 'api:'}
+            settings: {
+                api_url: 'api:',
+                api_cdn_whitelist: {},
+            }
         }, function(urls) {
             var homepage_url = urls.api.url('homepage');
             eq_(homepage_url.substr(0, 17), 'api:/foo/homepage');
-            contains(homepage_url, 'foo=bar');
+            contains(homepage_url, 'dev=firefoxos');
             done();
         },
         fail
@@ -95,8 +97,10 @@ test('api url signage', function(done, fail) {
         {
             capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
             routes_api: {'homepage': '/foo/homepage'},
-            routes_api_args: function() {return function() {return function() {return {foo: 'bar'};};};},  // Functions get pre-evaluated.
-            settings: {api_url: 'api:'},
+            settings: {
+                api_url: 'api:',
+                api_cdn_whitelist: {}
+            },
             user: {
                 logged_in: function() { return true; },
                 get_setting: function(x) {},
@@ -121,17 +125,93 @@ test('api url signage', function(done, fail) {
     );
 });
 
+test('api user-defined carrier (via SIM)', function(done, fail) {
+    mock(
+        'urls',
+        {
+            capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
+            user: {logged_in: function() {}, get_setting: function(x) {
+                return x == 'carrier_sim' && 'seavanaquaticcorp';
+            }}
+        }, function(urls) {
+            contains(urls.api.url('search'), 'carrier=seavanaquaticcorp');
+            done();
+        },
+        fail
+    );
+});
+
+test('api user-defined carrier+region (via SIM)', function(done, fail) {
+    mock(
+        'urls',
+        {
+            capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
+            user: {
+                logged_in: function() {},
+                get_setting: function(x) {
+                    switch(x) {
+                        case 'carrier_sim':
+                            return 'seavanaquaticcorp';
+                        case 'region_sim':
+                            return 'underwater';
+                    }
+                }
+            }
+        }, function(urls) {
+            var url = urls.api.url('search');
+            contains(url, 'carrier=seavanaquaticcorp');
+            contains(url, 'region=underwater');
+            done();
+        },
+        fail
+    );
+});
+
 test('api url blacklist', function(done, fail) {
     mock(
         'urls',
         {
             capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
             routes_api: {'homepage': '/foo/homepage'},
-            settings: {api_url: 'api:', api_param_blacklist: ['region']}
+            settings: {
+                api_cdn_whitelist: {},
+                api_url: 'api:',
+                api_param_blacklist: ['region']
+            }
         }, function(urls) {
             var homepage_url = urls.api.url('homepage');
             eq_(homepage_url.substr(0, 17), 'api:/foo/homepage');
             disincludes(homepage_url, 'region=');
+            done();
+        },
+        fail
+    );
+});
+
+test('api url CDN whitelist', function(done, fail) {
+    mock(
+        'urls',
+        {
+            routes_api: {
+                'homepage': '/api/v1/homepage/',
+                'search': '/api/v1/fireplace/search/?swag=yolo'
+            },
+            settings: {
+                api_url: 'api:',
+                api_cdn_whitelist: {
+                    '/api/v1/fireplace/search/': 60,  // 1 minute
+                    '/api/v1/fireplace/search/featured/': 60 * 2,  // 2 minutes
+                },
+                media_url: 'http://cdn.so.fast.omg.org'
+            }
+        }, function(urls) {
+            var homepage_url = urls.api.url('homepage');
+            eq_(homepage_url.substr(0, 21), 'api:/api/v1/homepage/');
+
+            var search_url = urls.api.url('search');
+            eq_(search_url.substr(0, 51),
+                'http://cdn.so.fast.omg.org/api/v1/fireplace/search/');
+
             done();
         },
         fail
@@ -143,7 +223,10 @@ test('api url params', function(done, fail) {
         'urls',
         {
             routes_api: {'homepage': '/foo/asdf'},
-            settings: {api_url: 'api:'}
+            settings: {
+                api_url: 'api:',
+                api_cdn_whitelist: {}
+            }
         }, function(urls) {
             var homepage_url = urls.api.params('homepage', {q: 'poop'});
             eq_(homepage_url.substr(0, 13), 'api:/foo/asdf');
