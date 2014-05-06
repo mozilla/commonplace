@@ -1,4 +1,4 @@
-<section class="main infobox prose">
+<section class="main infobox prose" id="debug-page">
   <div>
     <style>
       dt {
@@ -7,6 +7,12 @@
       }
       dd {
         float: left;
+      }
+      #debug-page label {
+        font-size: 18px;
+      }
+      #debug-page select {
+        margin-left: 10px;
       }
     </style>
     <h2>Debug</h2>
@@ -18,8 +24,53 @@
       <button class="button" id="clear-localstorage">Clear <code>localStorage</code></button>
     </p>
 
+    {% if settings.offline_cache_enabled() %}
+      <p>
+        <button class="button" id="disable-offline-cache">Disable offline cache</button>
+      </p>
+    {% else %}
+      <p>
+        <button class="button" id="enable-offline-cache">Enable offline cache</button>
+      </p>
+    {% endif %}
+
+    <p>
+      <button class="button" id="clear-offline-cache">Clear offline cache</button>
+    </p>
+
     <p>
       <button class="button" id="clear-cookies">Clear cookies</button>
+    </p>
+
+    <p>
+      <button class="button" id="nukecounter">Clear <code>newscounter</code></button>
+    </p>
+
+    <p>
+      <label>
+        Region Override
+        <select name="region" id="region">
+          {% set user_region = user.get_setting('region_override') %}
+          <option value=""{{ ' selected' if not user_region }}>---</option>
+          {% for code, region in REGIONS.items() %}
+            <option value="{{ code }}"{{ ' selected' if code == user_region }}>
+              {{ region }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </p>
+
+    <p>
+      <label>
+        Carrier Override
+        <select name="carrier" id="carrier">
+          {% set user_carrier = user.get_setting('carrier_override') %}
+          <option value=""{{ ' selected' if not user_carrier }}>---</option>
+          {% for carrier in carriers %}
+            <option{{ ' selected' if carrier == user_carrier }}>{{ carrier }}</option>
+          {% endfor %}
+        </select>
+      </label>
     </p>
 
     <h3>Site Settings</h3>
@@ -27,7 +78,7 @@
     <dl class="site-settings c">
       {% for setting in settings.items() %}
         <dt>{{ setting[0] }}</dt>
-        <dd>{{ setting[1] or '––' }}</dd>
+        <dd>{{ '—— truncated ——' if setting[0] == 'persona_site_logo' else setting[1] or '——' }}</dd>
       {% endfor %}
     </dl>
 
@@ -47,6 +98,12 @@
         <dt>{{ cap[0] }}</dt>
         <dd>{{ cap[1] }}</dd>
       {% endfor %}
+      {% for k, v in screen.items() %}
+        <dt>window.screen.{{ k }}</dt>
+        <dd>{{ v }}</dd>
+      {% endfor %}
+      <dt>Feature Profile</dt>
+      <dd>{{ profile }} (<a href="/debug/features">view feature profile information</a>)</dd>
     </dl>
 
     <h3>Cache</h3>
@@ -75,5 +132,15 @@
         {% endfor %}
       </ol>
     {% endfor %}
+
+    <h3>Offline Cache</h3>
+    <ol>
+      {% for url, response in request_cache.items() %}
+        <li>{{ url }}</li>
+      {% endfor %}
+    </ol>
+    <pre>
+      {{ request_cache|stringify(null, 2) }}
+    </pre>
   </div>
 </section>
