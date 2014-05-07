@@ -38,10 +38,12 @@ define('builder',
         parent.removeChild(to_replace);
     }
 
-    function fire(el, event_name) {
-        var args = Array.prototype.slice.call(arguments, 2);
-        var e = document.createEvent('Event');
-        e.initEvent.apply(e, [event_name, true, false].concat(args));
+    function fire(el, event_name, data) {
+        var e = new CustomEvent(event_name, {
+            bubbles: true,
+            cancelable: false,
+            detail: data
+        });
         el.dispatchEvent(e);
         return e;
     }
@@ -89,8 +91,11 @@ define('builder',
             }, false);
         }
 
-        function trigger_fragment_loaded(id) {
-            fire(page, 'fragment_loaded', id || null);
+        function trigger_fragment_loaded(data) {
+            fire(page, 'fragment_loaded', data);
+        }
+        function trigger_fragment_load_failed(data) {
+            fire(page, 'fragment_load_failed', data);
         }
 
         // This pretends to be the nunjucks extension that does the magic.
@@ -210,7 +215,7 @@ define('builder',
                             make_paginatable(injector, el, signature.paginate);
                         }
 
-                        trigger_fragment_loaded(signature.id || null);
+                        trigger_fragment_loaded({context: context, signature: signature});
 
                     }).fail(function(xhr, text, code, response) {
                         if (!replace) {
@@ -222,6 +227,7 @@ define('builder',
                             context.ctx.error = code;
                             el.innerHTML = except ? except() : error_template;
                         }
+                        trigger_fragment_load_failed({context: context, signature: signature});
                     });
                     return request;
                 };
