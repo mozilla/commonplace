@@ -84,7 +84,6 @@ test('api url', function(done, fail) {
         }, function(urls) {
             var homepage_url = urls.api.url('homepage');
             eq_(homepage_url.substr(0, 17), 'api:/foo/homepage');
-            contains(homepage_url, 'dev=firefoxos');
             done();
         },
         fail
@@ -119,48 +118,6 @@ test('api url signage', function(done, fail) {
             homepage_url = urls.api.unsigned.url('homepage');
             eq_(homepage_url, urls.api.unsign(homepage_base_url));
             disincludes(homepage_url, '_user=mytoken');
-            done();
-        },
-        fail
-    );
-});
-
-test('api user-defined carrier (via SIM)', function(done, fail) {
-    mock(
-        'urls',
-        {
-            capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
-            user: {logged_in: function() {}, get_setting: function(x) {
-                return x == 'carrier_sim' && 'seavanaquaticcorp';
-            }}
-        }, function(urls) {
-            contains(urls.api.url('search'), 'carrier=seavanaquaticcorp');
-            done();
-        },
-        fail
-    );
-});
-
-test('api user-defined carrier+region (via SIM)', function(done, fail) {
-    mock(
-        'urls',
-        {
-            capabilities: {firefoxOS: true, widescreen: function() { return false; }, touch: 'foo'},
-            user: {
-                logged_in: function() {},
-                get_setting: function(x) {
-                    switch(x) {
-                        case 'carrier_sim':
-                            return 'seavanaquaticcorp';
-                        case 'region_sim':
-                            return 'underwater';
-                    }
-                }
-            }
-        }, function(urls) {
-            var url = urls.api.url('search');
-            contains(url, 'carrier=seavanaquaticcorp');
-            contains(url, 'region=underwater');
             done();
         },
         fail
