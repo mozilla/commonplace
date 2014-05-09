@@ -1,6 +1,20 @@
 define('urls',
-    ['format', 'routes_api', 'routes_api_args', 'settings', 'user', 'utils'],
-    function(format, api_endpoints, api_args, settings, user) {
+    ['format', 'log', 'routes_api', 'routes_api_args', 'settings', 'user', 'utils'],
+    function(format, log, api_endpoints, api_args, settings, user, utils) {
+
+    var console = log('urls');
+
+    // The CDN URL is the same as the media URL but without the `/media/` path.
+    if ('media_url' in settings) {
+        var a = document.createElement('a');
+        a.href = settings.media_url;
+        settings.cdn_url = a.protocol + '//' + a.host;
+        console.log('Using settings.media_url: ' + settings.media_url);
+        console.log('Changed settings.cdn_url: ' + settings.cdn_url);
+    } else {
+        settings.cdn_url = settings.api_url;
+        console.log('Changed settings.cdn_url to settings.api_url: ' + settings.api_url);
+    }
 
     var group_pattern = /\([^\)]+\)/;
     var optional_pattern = /(\(.*\)|\[.*\]|.)\?/g;
@@ -44,7 +58,7 @@ define('urls',
                 args._user = user.get_token();
             }
             _removeBlacklistedParams(args);
-            return require('utils').urlparams(out, args);
+            return utils.urlparams(out, args);
         };
     }
 
@@ -53,7 +67,7 @@ define('urls',
             var out = func.apply(this, arguments);
             var args = api_args();
             _removeBlacklistedParams(args);
-            return require('utils').urlparams(out, args);
+            return utils.urlparams(out, args);
         };
     }
 
@@ -71,15 +85,28 @@ define('urls',
             console.error('Invalid API endpoint: ' + endpoint);
             return '';
         }
-        var url = settings.api_url + format.format(api_endpoints[endpoint], args || []);
+
+        var path = format.format(api_endpoints[endpoint], args || []);
+        var url = apiHost(path) + path;
+
         if (params) {
-            return require('utils').urlparams(url, params);
+            return utils.urlparams(url, params);
         }
         return url;
     }
 
     function apiParams(endpoint, params) {
         return api(endpoint, [], params);
+    }
+
+    function apiHost(path) {
+        // If the API URL is already reversed, then here's where we determine
+        // whether that URL gets served from the API or CDN.
+        var host = settings.api_url;
+        if (utils.baseurl(path) in settings.api_cdn_whitelist) {
+            host = settings.cdn_url;
+        }
+        return host;
     }
 
     function media(path) {
@@ -97,6 +124,7 @@ define('urls',
         reverse: reverse,
         api: {
             url: _userArgs(api),
+            host: apiHost,
             params: _userArgs(apiParams),
             sign: _userArgs(function(url) {return url;}),
             unsign: _anonymousArgs(function(url) {return url;}),
@@ -106,6 +134,7 @@ define('urls',
             },
             base: {
                 url: api,
+                host: apiHost,
                 params: apiParams
             }
         },

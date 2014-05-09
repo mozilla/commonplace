@@ -135,9 +135,6 @@ test('translate', function(done) {
     eq_(filters.translate({'blah': '3'}, dlobj, 'es-PD'), '3');
     eq_(filters.translate({'foo': 'bar', 'en-US': '3'}, null, 'es-PD'), '3');
     eq_(filters.translate({}, dlobj, 'es-PD'), '');
-    eq_(filters.translate('', dlobj, 'es-PD'), '');
-    eq_(filters.translate(null, dlobj, 'es-PD'), '');
-    eq_(filters.translate(undefined, dlobj, 'es-PD'), '');
     done();
 });
 

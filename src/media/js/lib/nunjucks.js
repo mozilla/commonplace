@@ -182,6 +182,27 @@ exports.groupBy = function(obj, val) {
     return result;
 };
 
+exports.toArray = function(obj) {
+    return Array.prototype.slice.call(obj);
+};
+
+exports.without = function(array) {
+    var result = [];
+    if (!array) {
+        return result;
+    }
+    var index = -1,
+    length = array.length,
+    contains = exports.toArray(arguments).slice(1);
+
+    while(++index < length) {
+        if(contains.indexOf(array[index]) === -1) {
+            result.push(array[index]);
+        }
+    }
+    return result;
+};
+
 exports.extend = function(obj, obj2) {
     for(var k in obj2) {
         obj[k] = obj2[k];
@@ -233,6 +254,27 @@ exports.map = function(obj, func) {
     return results;
 };
 
+exports.asyncParallel = function(funcs, done) {
+    var count = funcs.length,
+        result = new Array(count),
+        current = 0;
+
+    var makeNext = function(i) {
+        return function(res) {
+            result[i] = res;
+            current += 1;
+
+            if (current === count) {
+                done(result);
+            }
+        };
+    };
+
+    for (var i = 0; i < count; i++) {
+        funcs[i](makeNext(i));
+    }
+};
+
 exports.asyncIter = function(arr, iter, cb) {
     var i = -1;
 
@@ -269,6 +311,44 @@ exports.asyncFor = function(obj, iter, cb) {
 
     next();
 };
+
+if(!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(array, searchElement /*, fromIndex */) {
+        if (array === null) {
+            throw new TypeError();
+        }
+        var t = Object(array);
+        var len = t.length >>> 0;
+        if (len === 0) {
+            return -1;
+        }
+        var n = 0;
+        if (arguments.length > 2) {
+            n = Number(arguments[2]);
+            if (n != n) { // shortcut for verifying if it's NaN
+                n = 0;
+            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
+                n = (n > 0 || -1) * Math.floor(Math.abs(n));
+            }
+        }
+        if (n >= len) {
+            return -1;
+        }
+        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+        for (; k < len; k++) {
+            if (k in t && t[k] === searchElement) {
+                return k;
+            }
+        }
+        return -1;
+    };
+}
+
+if(!Array.prototype.map) {
+    Array.prototype.map = function() {
+        throw new Error("map is unimplemented for this js engine");
+    };
+}
 
 exports.keys = function(obj) {
     if(Object.prototype.keys) {
@@ -497,6 +577,17 @@ function memberLookup(obj, val) {
     return obj[val];
 }
 
+function callWrap(obj, name, args) {
+    if(!obj) {
+        throw new Error('Unable to call `' + name + '`, which is undefined or falsey');
+    }
+    else if(typeof obj !== 'function') {
+        throw new Error('Unable to call `' + name + '`, which is not a function');
+    }
+
+    return obj.apply(this, args);
+}
+
 function contextOrFrameLookup(context, frame, name) {
     var val = frame.lookup(name);
     return (val !== undefined && val !== null) ?
@@ -596,6 +687,7 @@ modules.runtime = {
     suppressValue: suppressValue,
     memberLookup: memberLookup,
     contextOrFrameLookup: contextOrFrameLookup,
+    callWrap: callWrap,
     handleError: handleError,
     isArray: lib.isArray,
     keys: lib.keys,
@@ -1298,7 +1390,11 @@ nunjucks.configure = function(templatesPath, opts) {
         opts = templatesPath;
         templatesPath = null;
     }
-    return e = new env.Environment(null, opts);
+
+    var noWatch = 'watch' in opts ? !opts.watch : false;
+    e = new env.Environment(null, opts);
+
+    return e;
 };
 
 nunjucks.render = function(name, ctx, cb) {
