@@ -1,15 +1,9 @@
 console.log('Sample Commonplace App');
 
 require.config({
-    enforceDefine: true,
     paths: {
-        'jquery': 'lib/jquery-2.0.2',
-        'underscore': 'lib/underscore',
-        'nunjucks': 'lib/nunjucks',
-        'nunjucks.compat': 'lib/nunjucks.compat',
-        'templates': '../../templates',
-        'settings': ['settings_local', 'settings'],
-        'format': 'lib/format'
+        // require config is hack-defined at the bottom of lib/require.js.
+        // 'your_lib_module': 'lib/your_lib_module'
     }
 });
 
