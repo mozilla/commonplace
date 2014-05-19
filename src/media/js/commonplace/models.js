@@ -8,7 +8,7 @@ define('models',
     var cache_key = 'model_cache';
     var data_store = {};
 
-    if (settings.offline_cache_enabled()) {
+    if (settings.offline_cache_enabled && settings.offline_cache_enabled()) {
         data_store = JSON.parse(storage.getItem(cache_key) || '{}');
     }
 
