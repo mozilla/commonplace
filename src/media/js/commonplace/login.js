@@ -39,10 +39,9 @@ define('login',
             // https://github.com/mozilla/browserid/issues/3229
             // gets fixed.
             if (!z.context.dont_reload_on_login) {
-                require('views').reload().done(function(){
-                    z.page.trigger('logged_out');
-                    signOutNotification();
-                });
+                z.page.trigger('logged_out');
+                signOutNotification();
+                require('views').reload();
             } else {
                 console.log('Reload on logout aborted by current view');
             }
