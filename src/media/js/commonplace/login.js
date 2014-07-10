@@ -52,7 +52,35 @@ define('login',
 
     var pending_logins = [];
 
+    function getCenteredCoordinates(width, height) {
+        var x = window.screenX + Math.max(0, Math.floor((window.innerWidth - width) / 2));
+        var y = window.screenY + Math.max(0, Math.floor((window.innerHeight - height) / 2));
+        return [x, y];
+    }
+
+    function fxaLogin() {
+        var data = {
+            'auth_response': msg.data.auth_code,
+            'state': settings.fxa_auth_state
+        };
+        z.page.trigger('before_login');
+        requests.post(urls.api.url('fxa-login'), data).done(function(data) {
+            user.set_token(data.token, data.settings);
+            user.update_permissions(data.permissions);
+            user.update_apps(data.apps);
+            console.log('Login succeeded, preparing the app');
+            z.body.addClass('logged-in');
+            $('.loading-submit').removeClass('loading-submit');
+            z.page.trigger('reload_chrome').trigger('logged_in');
+            _.invoke(pending_logins, 'resolve');
+            pending_logins = [];
+        });
+    }
+
     function startLogin() {
+        var w = 320;
+        var h = 500;
+        var i = getCenteredCoordinates(w, h);
         var def = defer.Deferred();
         pending_logins.push(def);
 
@@ -80,14 +108,33 @@ define('login',
         } else {
             console.log('Not allowing unverified emails');
         }
-
-        persona_loaded.done(function() {
-            if (capabilities.persona()) {
-                console.log('Requesting login from Persona');
-                navigator.id.request(opt);
+        if (capabilities.fallbackFxA()) {
+            window.addEventListener('message', function (msg) {
+                if (!msg.data || !msg.data.auth_code) {
+                    return;
+                }
+                fxaLogin(msg.data.auth_code);
+            }, false);
+            if (capabilities.device_type == 'desktop') {
+                storage.setItem('fxa-destination') = window.location.href
+                window.location.href = settings.fxa_auth_url
+            } else {
+                window.open(
+                    settings.fxa_auth_url, "fxa",
+                    'width=' + w + ',height=' + h + ',left=' + i[0] + ',top=' + i[1]);
             }
-        });
-
+        } else {
+            persona_loaded.done(function() {
+                if (capabilities.persona()) {
+                    console.log('Requesting login from Persona');
+                    if (capabilities.nativeFxA()) {
+                        navigator.id.request({oncancel: opt.oncancel});
+                    } else {
+                        navigator.id.request(opt);
+                    }
+                }
+            });
+        }
         return def.promise();
     }
 
@@ -195,20 +242,26 @@ define('login',
 
         if (capabilities.persona()) {
             console.log('Calling navigator.id.watch');
-            navigator.id.watch({
+            opts = {
                 loggedInUser: email,
+                onready: function() {},
                 onlogin: gotVerifiedEmail,
                 onlogout: function() {
                     z.body.removeClass('logged-in');
                     z.page.trigger('reload_chrome').trigger('logout');
                 }
-            });
+            };
+            if (capabilities.nativeFxA()) {
+                opts.wantIssuer = 'firefox-accounts';
+            }
+            navigator.id.watch(opts);
         }
+
     }).fail(function() {
         notification.notification({
             message: gettext('Persona cannot be reached. Try again later.')
         });
     });
 
-    return {login: startLogin};
+    return {login: startLogin, fxaLogin: fxaLogin};
 });
