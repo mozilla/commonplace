@@ -36,10 +36,12 @@ define('capabilities', ['settings'], function(settings) {
     static_caps.nativeFxA = function() {
         return (static_caps.firefoxOS
                 && !!navigator.userAgent.match(/rv:32.0/)
+                && settings.switches
                 && settings.switches.indexOf('firefox-accounts') !== -1)
     };
     static_caps.fallbackFxA = function() {
         return (!static_caps.nativeFxA()
+                && settings.switches
                 && settings.switches.indexOf('firefox-accounts') !== -1);
     };
 
