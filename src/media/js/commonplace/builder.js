@@ -109,7 +109,7 @@ define('builder',
                     if ('as' in signature && 'key' in signature) {
                         request = models(signature.as).get(url, signature.key, pool.get);
                     } else {
-                        request = pool.get(url);
+                        request = pool.get(url, !!signature.nocache);
                     }
 
                     if ('id' in signature) {
