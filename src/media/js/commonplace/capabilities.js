@@ -26,6 +26,8 @@ define('capabilities', ['settings'], function(settings) {
         'phantom': navigator.userAgent.match(/Phantom/)  // Don't use this if you can help it.
     };
 
+    // Note: persona will be true for nativeFxA, since it uses the same JavaScript API.
+    // FallbackFxA uses a completely different path, though.
     static_caps.persona = function() {
         return ((!!navigator.id || !!navigator.mozId) &&
                 !static_caps.phantom &&
@@ -34,8 +36,7 @@ define('capabilities', ['settings'], function(settings) {
     static_caps.nativeFxA = function() {
         return (static_caps.firefoxOS &&
                 window.location.protocol === 'app:' &&
-                navigator.userAgent.match(/rv:(\d{2})/)[1] >= 32 &&
-                settings.switches.indexOf('firefox-accounts') !== -1);
+                navigator.userAgent.match(/rv:(\d{2})/)[1] >= 32);
 
     };
     static_caps.fallbackFxA = function() {
