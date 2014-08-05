@@ -84,6 +84,7 @@ test('api url', function(done, fail) {
         }, function(urls) {
             var homepage_url = urls.api.url('homepage');
             eq_(homepage_url.substr(0, 17), 'api:/foo/homepage');
+            contains(homepage_url, 'dev=firefoxos');
             done();
         },
         fail
