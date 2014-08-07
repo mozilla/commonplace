@@ -13,6 +13,8 @@ var src_dir = info.src_dir();
 
 process.title = 'damper';
 
+var pollInterval = parseInt(process.env.DAMPER_POLL_INTERVAL || 250, 10);
+
 var mimes = {
     'appcache': 'text/cache-manifest',
     'css': 'text/css',
@@ -154,7 +156,7 @@ function watch(globpath, ext, command) {
                 runCommand(command, filepath);
             }
 
-            fs.watchFile(filepath, {interval: 250}, function(curr, prev) {
+            fs.watchFile(filepath, {interval: pollInterval}, function(curr, prev) {
                 if (curr.mtime.valueOf() !== prev.mtime.valueOf() ||
                     curr.ctime.valueOf() !== prev.ctime.valueOf()) {
                     console.warn('> ' + filepath + ' changed.');
