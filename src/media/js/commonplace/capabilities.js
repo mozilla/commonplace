@@ -41,7 +41,6 @@ define('capabilities', ['settings'], function(settings) {
     };
     static_caps.fallbackFxA = function() {
         return (!static_caps.nativeFxA() &&
-                settings.switches &&
                 settings.switches.indexOf('firefox-accounts') !== -1);
     };
 

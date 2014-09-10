@@ -1,6 +1,6 @@
 define('cache',
-    ['log', 'rewriters', 'settings', 'storage', 'user', 'utils', 'z'],
-    function(log, rewriters, settings, storage, user, utils, z) {
+    ['log', 'rewriters', 'settings', 'storage', 'user', 'utils', 'underscore', 'z'],
+    function(log, rewriters, settings, storage, user, utils, _, z) {
 
     var console = log('cache');
 
@@ -8,7 +8,7 @@ define('cache',
     var cache_key = 'request_cache';
 
     if (settings.offline_cache_enabled && settings.offline_cache_enabled()) {
-        cache = JSON.parse(storage.getItem(cache_key) || '{}');
+        cache = storage.getItem(cache_key) || {};
         flush_expired();
     }
 
@@ -18,7 +18,7 @@ define('cache',
     function get_ttl(url) {
         // Returns TTL for an API URL in microseconds.
         var path = utils.urlparse(url).pathname;
-        if (settings.offline_cache_whitelist && path in settings.offline_cache_whitelist) {
+        if (path in settings.offline_cache_whitelist) {
             // Convert from seconds to microseconds.
             return settings.offline_cache_whitelist[path] * 1000;
         }
@@ -26,7 +26,7 @@ define('cache',
     }
 
     function save() {
-        if (settings.offline_cache_enabled && !settings.offline_cache_enabled()) {
+        if (!settings.offline_cache_enabled()) {
             return;
         }
 
@@ -43,9 +43,8 @@ define('cache',
         z.doc.trigger('save_cache', cache_key);
 
         // Persist only if the data has changed.
-        var cache_to_save_str = JSON.stringify(cache_to_save);
-        if (storage.getItem(cache_key) !== cache_to_save_str) {
-            storage.setItem(cache_key, cache_to_save_str);
+        if (!_.isEqual(storage.getItem(cache_key), cache_to_save)) {
+            storage.setItem(cache_key, cache_to_save);
             console.log('Persisting request cache');
         }
     }
@@ -140,13 +139,13 @@ define('cache',
             if (has(key)) {
                 return get(key);
             } else {
-                var val = storage.getItem(persistentCachePrefix + key);
+                var val = JSON.parse(storage.getItem(persistentCachePrefix + key));
                 set(key, val);
                 return val;
             }
         },
         set: function(key, val) {
-            storage.setItem(persistentCachePrefix + key, val);
+            storage.setItem(persistentCachePrefix + key, JSON.stringify(val));
             set(key, val);
         },
         bust: function(key) {
@@ -154,7 +153,7 @@ define('cache',
             bust(key);
         },
         has: function(key) {
-            return storage.getItem(persistentCachePrefix + key);
+            return !!storage.getItem(persistentCachePrefix + key);
         },
         purge: function() {
             for (var i = 0; i < storage.length; i++) {

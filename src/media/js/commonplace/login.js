@@ -92,7 +92,7 @@ define('login',
         }
         if (capabilities.fallbackFxA()) {
             window.addEventListener('message', function (msg) {
-                if (!msg.data || !msg.data.auth_code) {
+                if (!msg.data || !msg.data.auth_code || msg.origin !== window.location.origin) {
                     return;
                 }
                 var data = {
@@ -123,8 +123,16 @@ define('login',
             // because the page never truly lost focus).
             var popup_interval = setInterval(function() {
                 if (!fxa_popup || fxa_popup.closed) {
-                    oncancel();
+                    // The oncancel was cancelling prematurely when window is closed,
+                    // prevents review dialog from popping up on login success.
+                    // oncancel();
+                    $('.loading-submit').removeClass('loading-submit').trigger('blur');
                     clearInterval(popup_interval);
+                } else {
+                    // If login dialog ends up behind another window, we want
+                    // to bring it to the front, otherwise it looks like login
+                    // is stuck / broken.
+                    fxa_popup.focus();
                 }
             }, 150);
 
@@ -271,7 +279,6 @@ define('login',
         // Wait on consumer_info promise, because it tells us whether fxa is
         // enabled. (FIXME bug 1038936).
         if (!capabilities.fallbackFxA()) {
-            window.console.info('Ok, no fallback FxA, loading Persona...');
             // Try to load persona. This is used by persona native/fallback
             // implementation, as well as fxa native.
             loadPersona();
