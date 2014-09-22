@@ -20,7 +20,6 @@
 .zsh/cache
 TAGS
 build_*
-dist
 node_modules
 npm-debug.log
 settings_local.js
