@@ -26,7 +26,7 @@ define('cache',
     }
 
     function save() {
-        if (!settings.offline_cache_enabled()) {
+        if (settings.offline_cache_enabled && !settings.offline_cache_enabled()) {
             return;
         }
 
