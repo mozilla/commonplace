@@ -2,7 +2,7 @@
     "author": "Mozilla",
     "name": "commonplace",
     "description": "Reusable components for the Firefox Marketplace",
-    "version": "0.4.24",
+    "version": "0.4.25",
     "ignore": [
         "bin",
         "example",
