@@ -11,6 +11,7 @@ notifications:
 language: node_js
 node_js:
   - "0.10"
+
 before_script:
   - "export PHANTOMJS_EXECUTABLE='phantomjs --local-to-remote-url-access=yes --ignore-ssl-errors=yes'"
   - "export DISPLAY=:99.0"
@@ -18,12 +19,11 @@ before_script:
   - "npm install"
   - "git clone git://github.com/n1k0/casperjs.git casperjs"
   - "cd casperjs && git checkout 1.0.2 && cd .."  # Use Homebrew's version of casper
-script:
-  - "mkdir tmpsrc"
-  - "mv test/ tmpsrc/test/"
-  - "cd tmpsrc"
 # Create an installation.
-  - "../bin/commonplace install"
+  - "git clone git://github.com/mozilla/commonplace-template.git"
+  - "cd commonplace-template"
+  - "make update"
+script:
 # Lint the installation.
   - "../bin/commonplace lint"
 # Start the damper.
@@ -33,19 +33,8 @@ script:
 # Generate include files and test that they are there.
   - "../bin/commonplace includes"
   - "test -f src/media/js/include.js"
-  # - "test -f src/media/css/include.css"  # Commented because there is no CSS to generate.
 # Delete the include files and test that they are gone.
   - "../bin/commonplace clean"
   - "test ! -f src/media/js/include.js"
-  # - "test ! -f src/media/css/include.css"  # Commented because there is no CSS to remove.
-# Delete a bunch of critical distributable files. Doesn't need to be exhaustive.
-  - "rm src/media/js/main.js"
-  - "rm src/media/js/rewriters.js"
-  - "rm src/media/js/routes.js"
-  - "rm src/media/js/routes_api.js"
-  - "rm src/media/js/routes_api_args.js"
-# Recreate the files; test `commonplace init`.
-  - "../bin/commonplace init"
+# Test `commonplace compile`.
   - "../bin/commonplace compile"
-# Make sure `commonplace init` did what it was supposed to do.
-  - "DISPLAY=:99.0 ../casperjs/bin/casperjs test test/"
