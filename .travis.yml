@@ -22,19 +22,21 @@ before_script:
 # Create an installation.
   - "git clone git://github.com/mozilla/commonplace-template.git"
   - "cd commonplace-template"
+  - "npm install"
+  - "npm install -g ../"
   - "make update"
 script:
 # Lint the installation.
-  - "../bin/commonplace lint"
+  - "commonplace lint"
 # Start the damper.
-  - "nohup ../bin/damper &"
+  - "nohup damper &"
 # Run the unit tests.
-  - "DISPLAY=:99.0 ../casperjs/bin/casperjs test test/"
+  - "DISPLAY=:99.0 ../casperjs/bin/casperjs test ../test"
 # Generate include files and test that they are there.
-  - "../bin/commonplace includes"
+  - "commonplace includes"
   - "test -f src/media/js/include.js"
 # Delete the include files and test that they are gone.
-  - "../bin/commonplace clean"
+  - "commonplace clean"
   - "test ! -f src/media/js/include.js"
 # Test `commonplace compile`.
-  - "../bin/commonplace compile"
+  - "commonplace compile"
