@@ -41,3 +41,4 @@ To update your commonplace installation, simply run `commonplace update --npm` f
 ## I have questions! Where do I look for more information?
 
 You can check out the [Wiki](https://github.com/mozilla/commonplace/wiki/_pages), which has plenty of documentation about the project.
+
