@@ -32,7 +32,7 @@ into your project and into your RequireJS development configuration.
 ## Creating a New Commonplace Project
 
 Clone the
-[Commonplace base template](https://github.com:mozilla/commonplace-template).
+[Commonplace base template](https://github.com/mozilla/commonplace-template).
 
 Run ```make init```. This will download dependencies from Commonplace via Bower
 and set up a couple of configurations.
