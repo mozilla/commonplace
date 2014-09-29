@@ -1,44 +1,44 @@
 # Commonplace
 
-Commonplace is the place for reusable components for the Firefox Marketplace (mozilla/fireplace).
+Reusable components for Firefox Marketplace frontend projects.
 
 [![Build Status](https://travis-ci.org/mozilla/commonplace.png?branch=master)](https://travis-ci.org/mozilla/commonplace)
 
-## Getting Started
+## Adding a Component
 
-###  Install node/npm
+Components are stored in the ```dist``` directory. There are currently several
+folders in ```dist``` that group the components:
 
-#### OS X
+- ```contrib```: JS modules that aren't necessary, but can be useful for some
+    projects.
+- ```contrib-css```: CSS components that aren't the part of the base styles,
+    but are possibly shared between some projects.
+- ```core```: necessary JS modules that power all of our projects, the Commonplace framework.
+- ```core-css```: base CSS components that ship with every project for visual consistency.
+- ```templates```: reusable templates
 
-Use `boxen` to install a node environment, or use `homebrew`:
+## Updating a Component
 
-```bash
-brew install node
-```
+When you add or update a component, you presumably want projects to be able
+to consume that component. We use **Bower** to manage our components.
 
-And make sure that `/usr/local/share/npm/bin` is in your `$PATH`, à la:
+- Bump the version in ```bower.json```.
+- Git tag that version and push to Github.
 
-```bash
-export PATH=/usr/local/share/npm/bin:$PATH
-```
+Then your projects should be able grab the new or updated component from Bower.
+For Commonplace projects, you can run ```make update``` to get these components
+into your project and into your RequireJS development configuration.
 
-### Setting up your repo
+## Creating a New Commonplace Project
 
-Create a new repository for your project. In it, create a basic `package.json` file. You can do this very easily by running `npm init`.
+Clone the
+[Commonplace base template](https://github.com:mozilla/commonplace-template).
 
-Next, install commonplace by running `npm install commonplace -g`. If you already have commonplace installed, update it with `npm update -g commonplace`.
-
-### Creating the commonplace base template
-
-At this point, simply run `commonplace install`. Running this command will create a `src/` directory in your project containing the minimum files needed to run your code. Other directories will also be created for L10n and other functions.
-
-The `--gitignore` option is available for `commonplace install`. It will copy a `.gitignore` into your project. If one already exists, it will print a command to allow you to manually overwrite your current `.gitignore` file.
-
-## Updating Commonplace
-
-To update your commonplace installation, simply run `commonplace update --npm` from the root of your project. Commonplace will automatically update the global commonplace library to the latest version and update all of the shared modules.
+Run ```make init```. This will download dependencies from Commonplace via Bower
+and set up a couple of configurations.
 
 ## I have questions! Where do I look for more information?
 
-You can check out the [Wiki](https://github.com/mozilla/commonplace/wiki/_pages), which has plenty of documentation about the project.
-
+You can check out the
+[Wiki](https://github.com/mozilla/commonplace/wiki/_pages), which has plenty of
+documentation about the project and the Commonplace framework.
