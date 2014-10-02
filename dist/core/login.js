@@ -1,6 +1,6 @@
 define('login',
-    ['cache', 'capabilities', 'consumer_info', 'defer', 'jquery', 'log', 'notification', 'settings', 'underscore', 'urls', 'user', 'utils', 'requests', 'z'],
-    function(cache, capabilities, consumer_info, defer, $, log, notification, settings, _, urls, user, utils, requests, z) {
+    ['cache', 'capabilities', 'consumer_info', 'defer', 'fxa_migration', 'jquery', 'log', 'notification', 'settings', 'storage', 'underscore', 'urls', 'user', 'utils', 'requests', 'z'],
+    function(cache, capabilities, consumer_info, defer, fxa_migration, $, log, notification, settings, storage, _, urls, user, utils, requests, z) {
 
     var console = log('login');
     var persona_def = defer.Deferred();
@@ -24,6 +24,21 @@ define('login',
         notification.notification({message: gettext('You have been signed in')});
     }
 
+    function logOut() {
+        cache.flush_signed();
+        user.clear_token();
+
+        z.body.removeClass('logged-in');
+        z.page.trigger('reload_chrome').trigger('before_logout');
+        if (!z.context.dont_reload_on_login) {
+            z.page.trigger('logged_out');
+            signOutNotification();
+            require('views').reload();
+        } else {
+            console.log('Reload on logout aborted by current view');
+        }
+    }
+
     z.body.on('click', '.persona', function(e) {
         e.preventDefault();
 
@@ -36,25 +51,17 @@ define('login',
     }).on('click', '.logout', utils._pd(function(e) {
         requests.del(urls.api.url('logout'));
 
-        cache.flush_signed();
-        user.clear_token();
-
         if (capabilities.persona()) {
             console.log('Triggering Persona logout');
             navigator.id.logout();
-        }
-
-        z.body.removeClass('logged-in');
-        z.page.trigger('reload_chrome').trigger('before_logout');
-        // Moved here from the onlogout callback for now until
-        // https://github.com/mozilla/browserid/issues/3229
-        // gets fixed.
-        if (!z.context.dont_reload_on_login) {
-            z.page.trigger('logged_out');
-            signOutNotification();
-            require('views').reload();
+            if (storage.getItem('user')) {
+                console.log("logout for-serious");
+                // navigator.id callback didn't log us out, let's do it now.
+                // see https://github.com/mozilla/browserid/issues/3229
+                logOut();
+            }
         } else {
-            console.log('Reload on logout aborted by current view');
+            logOut();
         }
     }));
 
@@ -66,7 +73,7 @@ define('login',
 
     function startLogin() {
         var w = 320;
-        var h = 500;
+        var h = 600;
         var i = getCenteredCoordinates(w, h);
         var def = defer.Deferred();
         pending_logins.push(def);
@@ -92,7 +99,7 @@ define('login',
         }
         if (capabilities.fallbackFxA()) {
             window.addEventListener('message', function (msg) {
-                if (!msg.data || !msg.data.auth_code || msg.origin !== window.location.origin) {
+                if (!msg.data || !msg.data.auth_code || msg.origin !== settings.api_url) {
                     return;
                 }
                 var data = {
@@ -113,7 +120,16 @@ define('login',
                 });
             }, false);
 
-            fxa_popup = window.open(settings.fxa_auth_url, 'fxa',
+            var fxa_url;
+            if (fxa_migration.canMigrate()) {
+                fxa_url = '/fxa-migration';
+                save_fxa_auth_url(settings.fxa_auth_url);
+            } else {
+                fxa_url = settings.fxa_auth_url;
+            }
+            fxa_popup = window.open(
+                fxa_url,
+                'fxa',
                 'width=' + w + ',height=' + h + ',left=' + i[0] + ',top=' + i[1]);
 
             // The same-origin policy prevents us from listening to events to
@@ -256,10 +272,7 @@ define('login',
                     loggedInUser: email,
                     onready: function() {},
                     onlogin: gotVerifiedEmail,
-                    onlogout: function() {
-                        z.body.removeClass('logged-in');
-                        z.page.trigger('reload_chrome').trigger('logout');
-                    }
+                    onlogout: logOut
                 };
                 if (capabilities.nativeFxA()) {
                     opts.wantIssuer = 'firefox-accounts';
@@ -292,5 +305,14 @@ define('login',
         }
     });
 
-    return {login: startLogin};
+    var fxa_auth_url_key = 'fxa_auth_url';
+    function save_fxa_auth_url(url) {
+        storage.setItem(fxa_auth_url_key, url);
+    }
+
+    function get_fxa_auth_url() {
+        return storage.getItem(fxa_auth_url_key);
+    }
+
+    return {login: startLogin, get_fxa_auth_url: get_fxa_auth_url};
 });
