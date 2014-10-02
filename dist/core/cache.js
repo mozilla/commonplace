@@ -18,7 +18,7 @@ define('cache',
     function get_ttl(url) {
         // Returns TTL for an API URL in microseconds.
         var path = utils.urlparse(url).pathname;
-        if (path in settings.offline_cache_whitelist) {
+        if (settings.offline_cache_whitelist && path in settings.offline_cache_whitelist) {
             // Convert from seconds to microseconds.
             return settings.offline_cache_whitelist[path] * 1000;
         }
