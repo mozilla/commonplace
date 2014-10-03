@@ -17,6 +17,14 @@ folders in ```dist``` that group the components:
 - ```core-css```: base CSS components that ship with every project for visual consistency.
 - ```templates```: reusable templates
 
+### Adding a Core JS Component
+
+When adding an integral component that should be distributed to all Commonplace
+projects, first add the files to ```dist/core```. Then we add the name of the
+core module to ```CORE_MODULES``` in ```lib/config.js```. This will make it
+so Commonplace projects won't have to manually configure them into their
+RequireJS configurations.
+
 ## Updating a Component
 
 When you add or update a component, you presumably want projects to be able
