@@ -15,7 +15,8 @@ folders in ```dist``` that group the components:
     but are possibly shared between some projects.
 - ```core```: necessary JS modules that power all of our projects, the Commonplace framework.
 - ```core-css```: base CSS components that ship with every project for visual consistency.
-- ```templates```: reusable templates
+- ```core-templates```: reusable templates that every project uses
+- ```contrib-templates```: reusable templates that some projects use
 
 ### Adding a Core JS Component
 
