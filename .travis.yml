@@ -37,5 +37,3 @@ script:
 # Delete the include files and test that they are gone.
   - "make clean"
   - "test ! -f src/media/js/include.js"
-# Test `commonplace compile`.
-  - "commonplace compile"
