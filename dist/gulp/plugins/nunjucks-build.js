@@ -1,3 +1,9 @@
+/*
+    Takes a stream of Vinyl files (Nunjucks templates) and compiles them.
+    Does not handle concatenation or prepending/appending of necessary code.
+    Returns compiled code which adds templates to a JS object called
+    'templates' keyed under the template names.
+*/
 var commonplace = require('commonplace');
 var nunjucks = require('nunjucks');
 var through = require('through2');
@@ -10,6 +16,8 @@ var extensions = commonplace.deferparser.extensions || [];
 
 
 function transform(file) {
+    // Takes a template file (as a buffer) and compiles it with Nunjucks, which
+    // is monkeypatched and optimized by Commonplace.
     var name = file.history[0].split('/').pop().replace('.html', '');
     var output = 'templates[' + JSON.stringify(name) + '] = (function() {';
 
@@ -39,11 +47,13 @@ function transform(file) {
 
 
 function nunjucksBuild(file, cb) {
+    // Transform stream.
     return through.obj(function(file, enc, cb) {
         file.contents = new Buffer(transform(file));
         this.push(file);
         return cb();
-    })
+    });
 }
+
 
 module.exports = nunjucksBuild;
