@@ -140,8 +140,17 @@ gulp.task('serve', ['build'], function() {
 
 
 gulp.task('clean', function() {
-    gulp.src([config.JS_DEST_PATH + paths.include_js,
-              config.CSS_DEST_PATH + paths.include_css], {read: false})
+    gulp.src([
+        config.CSS_DEST_PATH + 'splash.css',
+        config.CSS_DEST_PATH + paths.include_css,
+        config.JS_DEST_PATH + paths.include_js,
+        '_tmp',
+        'src/locales',
+        'src/media/locales',
+        'src/media/build_id.txt',
+        'src/media/imgurls.txt',
+        'src/templates.js'
+    ], {read: false})
         .pipe(clean({force: true}));
 });
 
