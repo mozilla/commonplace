@@ -18,7 +18,7 @@ var extensions = commonplace.deferparser.extensions || [];
 function transform(file) {
     // Takes a template file (as a buffer) and compiles it with Nunjucks, which
     // is monkeypatched and optimized by Commonplace.
-    var name = file.history[0].split('/').pop().replace('.html', '');
+    var name = file.history[0].split('templates/')[1];
     var output = 'templates[' + JSON.stringify(name) + '] = (function() {';
 
     var src = file.contents.toString('utf-8');

@@ -51,4 +51,3 @@ and set up a couple of configurations.
 You can check out the
 [Wiki](https://github.com/mozilla/commonplace/wiki/_pages), which has plenty of
 documentation about the project and the Commonplace framework.
-

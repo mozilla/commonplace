@@ -133,7 +133,6 @@ gulp.task('serve', ['build'], function() {
         .pipe(ignore.exclude('src/index.html'))
         .pipe(webserver({
             fallback: template + '.html',
-            livereload: true,
             port: 8675
         }));
 });
