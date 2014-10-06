@@ -10,7 +10,6 @@ var ignore = require('gulp-ignore');
 var insert = require("gulp-insert");
 var install = require("gulp-install");
 var order = require('gulp-order');
-var rjs = require('gulp-requirejs');
 var rename = require('gulp-rename');
 var stylus = require('gulp-stylus');
 var webserver = require('gulp-webserver');
