@@ -13,22 +13,16 @@ var order = require('gulp-order');
 var rename = require('gulp-rename');
 var stylus = require('gulp-stylus');
 var webserver = require('gulp-webserver');
+var requireDir = require('require-dir');
 var _ = require('underscore');
 var argv = require('yargs').argv;
+
 var config = require('../../../../config');
+var nunjucksBuild = require('./plugins/nunjucks-build');
+var paths = require('./paths');
 
-var paths = {
-    bower: 'bower_components/',
-    css: config.CSS_DEST_PATH + '**/*.css',
-    styl: config.CSS_DEST_PATH + '**/*.styl',
-    js: config.JS_DEST_PATH + '**/*.js'
-};
-paths.require = paths.bower + 'requirejs/require.js';
-paths.almond = paths.bower + 'almond/almond.js';
-paths.init = paths.bower + 'commonplace/dist/core/init.js';
 
-var INCLUDE_JS = 'include.js';
-var INCLUDE_CSS = 'include.css';
+requireDir('tasks');
 
 
 gulp.task('install', function(done) {
@@ -61,6 +55,26 @@ gulp.task('require_config', ['install'], function() {
 });
 
 
+gulp.task('template_build', function() {
+    gulp.src(paths.html)
+        .pipe(nunjucksBuild())
+        .pipe(concat('templates.js'))
+        .pipe(insert.prepend(
+            '(function() {\n' +
+            'var templates = {};\n'))
+        .pipe(insert.append(
+            'define("templates", ["nunjucks", "helpers"], function(nunjucks) {\n' +
+            '    nunjucks.env = new nunjucks.Environment([], {autoescape: true});\n' +
+            '    nunjucks.env.cache = nunjucks.templates = templates;\n' +
+            '    console.log("Templates loaded");\n' +
+            '    return nunjucks;\n' +
+            '});\n' +
+            '})();'
+        ))
+        .pipe(gulp.dest('src'));
+});
+
+
 gulp.task('css_compile', function() {
     gulp.src(paths.styl)
         .pipe(stylus({
@@ -75,7 +89,7 @@ gulp.task('css_build', ['css_compile'], function() {
         .pipe(stylus({
             compress: true
         }))
-        .pipe(concat(INCLUDE_CSS))
+        .pipe(concat(paths.include_css))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
 });
 
@@ -97,13 +111,13 @@ gulp.task('js_build', function() {
                 shim: config.requireConfig.shim,
                 wrapShim: true
             }))
-            .pipe(concat(INCLUDE_JS)),
+            .pipe(concat(paths.include_js)),
         // Init script.
         gulp.src(paths.init)
     )
         .pipe(order(['**/almond.js', '**/include.js', '**/init.js']))
         .pipe(uglify())
-        .pipe(concat(INCLUDE_JS))
+        .pipe(concat(paths.include_js))
         .pipe(gulp.dest(config.JS_DEST_PATH));
 });
 
@@ -126,12 +140,17 @@ gulp.task('serve', ['build'], function() {
 
 
 gulp.task('clean', function() {
-    gulp.src([config.JS_DEST_PATH + INCLUDE_JS,
-              config.CSS_DEST_PATH + INCLUDE_CSS], {read: false})
+    gulp.src([config.JS_DEST_PATH + paths.include_js,
+              config.CSS_DEST_PATH + paths.include_css], {read: false})
         .pipe(clean({force: true}));
 });
 
 
 gulp.task('default', []);
 gulp.task('update', ['bower_copy', 'require_config']);
-gulp.task('build', ['css_build', 'js_build']);
+gulp.task('build', ['css_build', 'js_build', 'template_build']);
+
+
+module.exports = {
+    paths: paths
+};
