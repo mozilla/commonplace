@@ -10,6 +10,7 @@ var ignore = require('gulp-ignore');
 var insert = require("gulp-insert");
 var install = require("gulp-install");
 var order = require('gulp-order');
+var minifyCSS = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var stylus = require('gulp-stylus');
 var webserver = require('gulp-webserver');
@@ -19,6 +20,7 @@ var argv = require('yargs').argv;
 
 var config = require('../../../../config');
 var nunjucksBuild = require('./plugins/nunjucks-build');
+var imgurlsCachebust = require('./plugins/imgurls-cachebust');
 var imgurlsParse = require('./plugins/imgurls-parse');
 var paths = require('./paths');
 
@@ -28,7 +30,7 @@ requireDir('tasks');
 
 gulp.task('install', function(done) {
     // Bumps bower and npm dependencies.
-    gulp.src(['bower.json', 'package.json'])
+    return gulp.src(['bower.json', 'package.json'])
         .pipe(install())
         .pipe(gulpUtil.noop())  // Wait for dependencies to finish installing.
         .on('finish', function() {
@@ -39,7 +41,7 @@ gulp.task('install', function(done) {
 
 gulp.task('bower_copy', ['install'], function() {
     // Copy files from Bower into project.
-    _.each(Object.keys(config.bowerConfig), function(source) {
+    return _.each(Object.keys(config.bowerConfig), function(source) {
         var dest = config.bowerConfig[source];
         gulp.src(paths.bower + source)
             .pipe(gulp.dest(dest));
@@ -50,14 +52,14 @@ gulp.task('bower_copy', ['install'], function() {
 gulp.task('require_config', ['install'], function() {
     // Build a require.js file that contains a convenience call to
     // require.config that sets up some pre-known paths.
-    gulp.src(paths.require)
+    return gulp.src(paths.require)
         .pipe(insert.append(config.inlineRequireConfig))
         .pipe(gulp.dest(config.LIB_DEST_PATH));
 });
 
 
 gulp.task('template_build', function() {
-    gulp.src(paths.html)
+    return gulp.src(paths.html)
         .pipe(nunjucksBuild())
         .pipe(concat('templates.js'))
         .pipe(insert.prepend(
@@ -76,12 +78,9 @@ gulp.task('template_build', function() {
 });
 
 
-gulp.task('css_compile', function() {
-    gulp.src(paths.styl)
-        .pipe(stylus({
-            linenos: true
-        }))
-        .pipe(imgurlsParse.imgurlsParse())
+gulp.task('css_compile', function(done) {
+    return gulp.src(paths.styl)
+        .pipe(stylus())
         .pipe(rename(function(path) {
             path.extname = '.styl.css';
         }))
@@ -90,19 +89,23 @@ gulp.task('css_compile', function() {
 
 
 gulp.task('css_build', ['css_compile'], function() {
-    gulp.src(paths.css)
-        .pipe(stylus({
-            compress: true
-        }))
-        .pipe(imgurlsParse.imgurlsParse())
+    return gulp.src([paths.css,
+                     '!' + config.CSS_DEST_PATH + paths.include_css])
+        .pipe(stylus({compress: true}))
+        .pipe(imgurlsCachebust())
+        .pipe(minifyCSS())
         .pipe(concat(paths.include_css))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
 });
 
 
-gulp.task('imgurls_write', ['css_compile'], function() {
+gulp.task('imgurls_write', ['css_build'], function() {
     // imgurls.txt is a list of cachebusted img URLs that is used by Zamboni
     // to generate the appcache manifest.
+    return gulp.src(config.CSS_DEST_PATH + paths.include_css)
+        .pipe(imgurlsParse())
+        .pipe(rename('imgurls.txt'))
+        .pipe(gulp.dest('src/media'));
 });
 
 
@@ -111,7 +114,7 @@ gulp.task('js_build', function() {
     // Will read our RequireJS config to handle shims, paths, and name
     // anonymous modules.
     // Traces all modules and outputs them in the correct order.
-    eventStream.merge(
+    return eventStream.merge(
         // Almond loader.
         gulp.src(paths.almond),
         // JS bundle.
@@ -134,14 +137,14 @@ gulp.task('js_build', function() {
 });
 
 
-gulp.task('serve', ['css_compile', 'templates_build'], function() {
+gulp.task('serve', ['css_compile', 'template_build'], function() {
     // t/template -- template to serve (e.g., index (default), app, server).
     var template = 'index';
     if (argv._[0] == 'serve' && (argv.t || argv.template)) {
         template = argv.t || argv.template;
     }
 
-    gulp.src(['src'])
+    return gulp.src(['src'])
         .pipe(ignore.exclude('src/index.html'))
         .pipe(webserver({
             fallback: template + '.html',
@@ -151,10 +154,11 @@ gulp.task('serve', ['css_compile', 'templates_build'], function() {
 
 
 gulp.task('clean', function() {
-    gulp.src([
+    return gulp.src([
         config.CSS_DEST_PATH + 'splash.css',
         config.CSS_DEST_PATH + paths.include_css,
         config.JS_DEST_PATH + paths.include_js,
+        paths.styl_compiled,
         '_tmp',
         'src/locales',
         'src/media/locales',

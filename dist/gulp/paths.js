@@ -4,10 +4,11 @@ var paths = {
     bower: 'bower_components/',
     css: config.CSS_DEST_PATH + '**/*.css',
     styl: config.CSS_DEST_PATH + '**/*.styl',
-    js: config.JS_DEST_PATH + '**/*.js',
+    styl_compiled: config.CSS_DEST_PATH + '**/*.css.styl',
     html: 'src/templates/**/*.html',
     include_css: 'include.css',
     include_js: 'include.js',
+    js: config.JS_DEST_PATH + '**/*.js',
 
 };
 paths.require = paths.bower + 'requirejs/require.js';
