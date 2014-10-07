@@ -6,7 +6,7 @@ casper.on('page.error', function(err, trace) {
     });
 });
 
-casper.start("http://localhost:8675/tests", function() {
+casper.start('http://localhost:8675/tests', function() {
     console.log('Started initial navigation.');
 });
 
