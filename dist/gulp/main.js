@@ -19,6 +19,7 @@ var argv = require('yargs').argv;
 
 var config = require('../../../../config');
 var nunjucksBuild = require('./plugins/nunjucks-build');
+var imgurlsParse = require('./plugins/imgurls-parse');
 var paths = require('./paths');
 
 
@@ -80,6 +81,10 @@ gulp.task('css_compile', function() {
         .pipe(stylus({
             linenos: true
         }))
+        .pipe(imgurlsParse.imgurlsParse())
+        .pipe(rename(function(path) {
+            path.extname = '.styl.css';
+        }))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
 });
 
@@ -89,8 +94,15 @@ gulp.task('css_build', ['css_compile'], function() {
         .pipe(stylus({
             compress: true
         }))
+        .pipe(imgurlsParse.imgurlsParse())
         .pipe(concat(paths.include_css))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
+});
+
+
+gulp.task('imgurls_write', ['css_compile'], function() {
+    // imgurls.txt is a list of cachebusted img URLs that is used by Zamboni
+    // to generate the appcache manifest.
 });
 
 
@@ -122,7 +134,7 @@ gulp.task('js_build', function() {
 });
 
 
-gulp.task('serve', ['build'], function() {
+gulp.task('serve', ['css_compile', 'templates_build'], function() {
     // t/template -- template to serve (e.g., index (default), app, server).
     var template = 'index';
     if (argv._[0] == 'serve' && (argv.t || argv.template)) {
