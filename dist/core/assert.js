@@ -105,7 +105,7 @@ define('assert', ['underscore'], function(_) {
         var context = require.config({
             context: _.uniqueId(),
             map: {'*': stub_map},
-            baseUrl: 'media/js/',
+            baseUrl: '/media/js/',
             paths: requirejs.s.contexts._.config.paths,
             shim: requirejs.s.contexts._.config.shim
         });
@@ -114,7 +114,7 @@ define('assert', ['underscore'], function(_) {
             define(k, v);
         });
 
-        context([test_module], function(module) {
+        context([test_module], function(module, yeah) {
             try {
                 runner.apply(this, [module, mock_objs]);
             } catch (e) {
