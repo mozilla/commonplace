@@ -36,7 +36,8 @@ function transform(file) {
     } catch(e) {
         output += [
             'return {root: function() {',
-            'throw new Error("' + name + ' failed to compile. Check the damper for details.");',
+            'throw new Error("' + name + ' failed to compile. Check the ',
+            'server for details.");',
             '}}'
         ].join('\n');
         console.error(e);
