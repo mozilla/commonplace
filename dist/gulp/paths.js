@@ -9,7 +9,6 @@ var paths = {
     include_css: 'include.css',
     include_js: 'include.js',
     js: config.JS_DEST_PATH + '**/*.js',
-
 };
 paths.require = paths.bower + 'requirejs/require.js';
 paths.almond = paths.bower + 'almond/almond.js';

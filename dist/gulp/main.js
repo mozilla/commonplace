@@ -58,7 +58,7 @@ gulp.task('require_config', ['install'], function() {
 });
 
 
-gulp.task('template_build', function() {
+gulp.task('templates_build', function() {
     return gulp.src(paths.html)
         .pipe(nunjucksBuild())
         .pipe(concat('templates.js'))
@@ -137,7 +137,7 @@ gulp.task('js_build', function() {
 });
 
 
-gulp.task('serve', ['css_compile', 'template_build'], function() {
+gulp.task('serve', ['css_compile', 'templates_build'], function() {
     // t/template -- template to serve (e.g., index (default), app, server).
     var template = 'index';
     if (argv._[0] == 'serve' && (argv.t || argv.template)) {
@@ -170,9 +170,18 @@ gulp.task('clean', function() {
 });
 
 
-gulp.task('default', []);
+gulp.task('watch', function() {
+    // Watch and recompile on change.
+    // Note: does not detect new and deleted files while running.
+    gulp.watch(paths.html, ['templates_build']);
+    gulp.watch(paths.styl, ['css_compile']);
+});
+
+
+gulp.task('default', ['watch', 'serve']);
 gulp.task('update', ['bower_copy', 'require_config']);
-gulp.task('build', ['css_build', 'js_build', 'template_build']);
+gulp.task('build', ['css_build', 'js_build', 'templates_build',
+                    'imgurls_write']);
 
 
 module.exports = {
