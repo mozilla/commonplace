@@ -114,7 +114,7 @@ define('assert', ['underscore'], function(_) {
             define(k, v);
         });
 
-        context([test_module], function(module, yeah) {
+        context([test_module], function(module) {
             try {
                 runner.apply(this, [module, mock_objs]);
             } catch (e) {
