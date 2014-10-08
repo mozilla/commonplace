@@ -30,7 +30,7 @@ requireDir('tasks');
 
 gulp.task('install', function(done) {
     // Bumps bower and npm dependencies.
-    return gulp.src(['bower.json', 'package.json'])
+    gulp.src(['bower.json', 'package.json'])
         .pipe(install())
         .pipe(gulpUtil.noop())  // Wait for dependencies to finish installing.
         .on('finish', function() {
@@ -143,6 +143,7 @@ gulp.task('serve', ['css_compile', 'templates_build'], function() {
     return gulp.src(['src'])
         .pipe(webserver({
             fallback: argv.template || 'index' + '.html',
+            livereload: true,
             port: argv.port || config.PORT || 8675
         }));
 });
