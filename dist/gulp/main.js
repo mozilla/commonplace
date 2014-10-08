@@ -138,17 +138,12 @@ gulp.task('js_build', function() {
 
 
 gulp.task('serve', ['css_compile', 'templates_build'], function() {
-    // t/template -- template to serve (e.g., index (default), app, server).
-    var template = 'index';
-    if (argv._[0] == 'serve' && (argv.t || argv.template)) {
-        template = argv.t || argv.template;
-    }
-
+    // template -- template to serve (e.g., index (default), app, server).
+    // port -- server port, defaults to config port or 8675.
     return gulp.src(['src'])
-        .pipe(ignore.exclude('src/index.html'))
         .pipe(webserver({
-            fallback: template + '.html',
-            port: 8675
+            fallback: argv.template || 'index' + '.html',
+            port: argv.port || config.PORT || 8675
         }));
 });
 
