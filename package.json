@@ -1,5 +1,6 @@
 {
   "name": "commonplace",
+  "description": "Reusable components for Firefox Marketplace frontend projects.",
   "version": "0.5.5",
   "main": "lib/commonplace",
   "preferGlobal": true,
@@ -12,12 +13,8 @@
     "npm": ">= 1.1.x"
   },
   "dependencies": {
-    "clean-css": "2.0.x",
     "jshint": "2.3.x",
     "nunjucks": "1.0.x",
-    "stylus": "0.32.x",
-    "uglify-js": "2.4.x",
-    "underscore": "1.7.x"
   },
   "bin": {
     "commonplace": "./bin/commonplace"
