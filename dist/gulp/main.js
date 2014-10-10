@@ -97,8 +97,8 @@ gulp.task('css_bundles', function() {
 
     Object.keys(config.cssBundles || []).forEach(function(bundle) {
         streams.push(gulp.src(config.CSS_DEST_PATH + config.cssBundles[bundle])
-            .pipe(minifyCSS())
             .pipe(concat(bundle))
+            .pipe(minifyCSS())
             .pipe(gulp.dest(config.CSS_DEST_PATH))
         );
     });
