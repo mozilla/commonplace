@@ -91,7 +91,7 @@ gulp.task('css_compile', function() {
 });
 
 
-gulp.task('css_bundles', function() {
+gulp.task('css_bundles', ['css_compile'], function() {
     // Read the config and build specified CSS bundles (like for splash.css).
     var streams = [];
 
