@@ -14,6 +14,7 @@ var minifyCSS = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var stylus = require('gulp-stylus');
 var webserver = require('gulp-webserver');
+var mergeStream = require('merge-stream');
 var requireDir = require('require-dir');
 var _ = require('underscore');
 var argv = require('yargs').argv;
@@ -59,6 +60,7 @@ gulp.task('require_config', ['install'], function() {
 
 
 gulp.task('templates_build', function() {
+    // Build Nunjucks templates into a templates.js file.
     return gulp.src(paths.html)
         .pipe(nunjucksBuild())
         .pipe(concat('templates.js'))
@@ -78,7 +80,8 @@ gulp.task('templates_build', function() {
 });
 
 
-gulp.task('css_compile', function(done) {
+gulp.task('css_compile', function() {
+    // Compile .styl files into .styl.css files.
     return gulp.src(paths.styl)
         .pipe(stylus())
         .pipe(rename(function(path) {
@@ -88,9 +91,36 @@ gulp.task('css_compile', function(done) {
 });
 
 
-gulp.task('css_build', ['css_compile'], function() {
-    return gulp.src([paths.css,
-                     '!' + config.CSS_DEST_PATH + paths.include_css])
+gulp.task('css_bundles', function() {
+    // Read the config and build specified CSS bundles (like for splash.css).
+    var streams = [];
+
+    Object.keys(config.cssBundles || []).forEach(function(bundle) {
+        streams.push(gulp.src(config.CSS_DEST_PATH + config.cssBundles[bundle])
+            .pipe(minifyCSS())
+            .pipe(concat(bundle))
+            .pipe(gulp.dest(config.CSS_DEST_PATH))
+        );
+    });
+
+    // Yes, cross the streams.
+    if (streams) {
+        return mergeStream.apply(this, streams);
+    }
+});
+
+
+gulp.task('css_build', ['css_bundles', 'css_compile'], function() {
+    // Bundle and minify all the CSS into include.css.
+    var excludes = Object.keys(config.cssBundles || []).map(function(bundle) {
+        // Exclude generated bundles if any specified in the config.
+        return '!' + config.CSS_DEST_PATH + bundle;
+    });
+    // Exclude previously generated builds.
+    excludes.push('!' + config.CSS_DEST_PATH + paths.include_css);
+    var css = [paths.css].concat(excludes);
+
+    return gulp.src(css)
         .pipe(stylus({compress: true}))
         .pipe(imgurlsCachebust())
         .pipe(minifyCSS())
