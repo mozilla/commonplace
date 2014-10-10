@@ -21,6 +21,7 @@ var argv = require('yargs').argv;
 
 var config = require('../../../../config');
 var nunjucksBuild = require('./plugins/nunjucks-build');
+var imgurlsAbsolutify = require('./plugins/imgurls-absolutify');
 var imgurlsCachebust = require('./plugins/imgurls-cachebust');
 var imgurlsParse = require('./plugins/imgurls-parse');
 var paths = require('./paths');
@@ -123,6 +124,7 @@ gulp.task('css_build', ['css_bundles', 'css_compile'], function() {
     return gulp.src(css)
         .pipe(stylus({compress: true}))
         .pipe(imgurlsCachebust())
+        .pipe(imgurlsAbsolutify())
         .pipe(minifyCSS())
         .pipe(concat(paths.include_css))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
