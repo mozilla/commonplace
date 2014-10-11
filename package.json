@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "jshint": "2.3.x",
-    "nunjucks": "1.0.x",
+    "nunjucks": "1.0.x"
   },
   "bin": {
     "commonplace": "./bin/commonplace"
