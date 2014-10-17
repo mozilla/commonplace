@@ -43,6 +43,42 @@ define('login',
         }
     }
 
+    function logIn(data) {
+        var should_reload = !user.logged_in();
+
+        user.set_token(data.token, data.settings);
+        user.update_permissions(data.permissions);
+        user.update_apps(data.apps);
+        console.log('Login succeeded, preparing the app');
+
+        z.body.addClass('logged-in');
+        $('.loading-submit').removeClass('loading-submit');
+        z.page.trigger('reload_chrome').trigger('logged_in');
+
+        function resolve_pending() {
+            _.invoke(pending_logins, 'resolve');
+            pending_logins = [];
+        }
+
+        if (should_reload && !z.context.dont_reload_on_login) {
+            require('views').reload().done(function() {
+                resolve_pending();
+                signInNotification();
+            });
+        } else {
+            console.log('Reload on login aborted by current view');
+        }
+    }
+
+    function logInFailed(message) {
+        message = message || gettext('Sign in failed');
+        notification.notification({message: message});
+        $('.loading-submit').removeClass('loading-submit');
+        z.page.trigger('login_fail');
+        _.invoke(pending_logins, 'reject');
+        pending_logins = [];
+    }
+
     z.body.on('click', '.persona', function(e) {
         e.preventDefault();
 
@@ -106,28 +142,6 @@ define('login',
             console.log('Not allowing unverified emails');
         }
         if (capabilities.fallbackFxA()) {
-            window.addEventListener('message', function (msg) {
-                if (!msg.data || !msg.data.auth_code || msg.origin !== settings.api_url) {
-                    return;
-                }
-                var data = {
-                    'auth_response': msg.data.auth_code,
-                    'state': settings.fxa_auth_state
-                };
-                z.page.trigger('before_login');
-                requests.post(urls.api.url('fxa-login'), data).done(function(data) {
-                    user.set_token(data.token, data.settings);
-                    user.update_permissions(data.permissions);
-                    user.update_apps(data.apps);
-                    console.log('Login succeeded, preparing the app');
-                    z.body.addClass('logged-in');
-                    $('.loading-submit').removeClass('loading-submit');
-                    z.page.trigger('reload_chrome').trigger('logged_in');
-                    _.invoke(pending_logins, 'resolve');
-                    pending_logins = [];
-                });
-            }, false);
-
             var fxa_url;
             if (user.canMigrate()) {
                 fxa_url = '/fxa-migration';
@@ -189,33 +203,9 @@ define('login',
 
         z.page.trigger('before_login');
 
-        requests.post(urls.api.url('login'), data).done(function(data) {
-            var should_reload = !user.logged_in();
-
-            user.set_token(data.token, data.settings);
-            user.update_permissions(data.permissions);
-            user.update_apps(data.apps);
-            console.log('Login succeeded, preparing the app');
-
-            z.body.addClass('logged-in');
-            $('.loading-submit').removeClass('loading-submit');
-            z.page.trigger('reload_chrome').trigger('logged_in');
-
-            function resolve_pending() {
-                _.invoke(pending_logins, 'resolve');
-                pending_logins = [];
-            }
-
-            if (should_reload && !z.context.dont_reload_on_login) {
-                require('views').reload().done(function() {
-                    resolve_pending();
-                    signInNotification();
-                });
-            } else {
-                console.log('Reload on login aborted by current view');
-            }
-
-        }).fail(function(jqXHR, textStatus, error) {
+        requests.post(urls.api.url('login'), data)
+                .done(logIn)
+                .fail(function(jqXHR, textStatus, error) {
             console.warn('Assertion verification failed!', textStatus, error);
 
             var err = jqXHR.responseText;
@@ -227,12 +217,7 @@ define('login',
             if (jqXHR.status != 200) {
                 err = gettext('Persona login failed. A server error was encountered.');
             }
-            $('.loading-submit').removeClass('loading-submit');
-            notification.notification({message: err});
-
-            z.page.trigger('login_fail');
-            _.invoke(pending_logins, 'reject');
-            pending_logins = [];
+            logInFailed(err);
         });
     }
 
@@ -302,6 +287,16 @@ define('login',
         return persona_loaded;
     }
 
+    function registerFxAPostMessageHandler() {
+        window.addEventListener('message', function (msg) {
+            if (!msg.data || !msg.data.auth_code ||
+                    msg.origin !== settings.api_url) {
+                return;
+            }
+            handle_fxa_login(msg.data.auth_code);
+        });
+    }
+
     siteConfig.promise.done(function(data) {
         if (!capabilities.fallbackFxA()) {
             // Try to load persona. This is used by persona native/fallback
@@ -314,6 +309,9 @@ define('login',
             // This lets us change the cursor for the "Sign in" link.
             persona_def.reject();
             z.body.addClass('persona-loaded');
+            // Register the "message" handler here to avoid it being registered
+            // multiple times.
+            registerFxAPostMessageHandler();
         }
     });
 
@@ -326,8 +324,23 @@ define('login',
         return storage.getItem(fxa_auth_url_key);
     }
 
+    function handle_fxa_login(auth_code, state) {
+        var loginData = {
+            'auth_response': auth_code,
+            'state': state || settings.fxa_auth_state,
+        };
+        z.page.trigger('before_login');
+        requests.post(urls.api.url('fxa-login'), loginData)
+                .done(logIn)
+                .fail(function(jqXHR, textStatus, error) {
+            console.warn('FxA login failed', jqXHR, textStatus, error);
+            logInFailed();
+        });
+    }
+
     return {
         login: startLogin,
-        get_fxa_auth_url: get_fxa_auth_url
+        get_fxa_auth_url: get_fxa_auth_url,
+        handle_fxa_login: handle_fxa_login,
     };
 });
