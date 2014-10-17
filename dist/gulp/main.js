@@ -115,17 +115,24 @@ gulp.task('css_build', ['css_bundles', 'css_compile'], function() {
     // Bundle and minify all the CSS into include.css.
     var excludes = Object.keys(config.cssBundles || []).map(function(bundle) {
         // Exclude generated bundles if any specified in the config.
-        return '!' + config.CSS_DEST_PATH + bundle;
+        return bundle;
     });
     // Exclude previously generated builds.
-    excludes.push('!' + config.CSS_DEST_PATH + paths.include_css);
-    var css = [paths.css].concat(excludes);
+    excludes.push(paths.include_css);
+    // Exclude from project config.
+    if (config.cssExcludes) {
+        excludes = excludes.concat(config.cssExcludes);
+    }
+    excludes = excludes.map(function(css) { return '!' + config.CSS_DEST_PATH + css; });
 
-    return gulp.src(css)
+    return gulp.src([paths.css].concat(excludes))
         .pipe(stylus({compress: true}))
         .pipe(imgurlsCachebust())
         .pipe(imgurlsAbsolutify())
         .pipe(minifyCSS())
+        // Order by base styles first.
+        .pipe(order(['base/*.styl.css', '*.styl.css'],
+                    {base: config.CSS_DEST_PATH}))
         .pipe(concat(paths.include_css))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
 });
