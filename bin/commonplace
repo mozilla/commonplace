@@ -27,8 +27,17 @@ if (!argv.length) {
 var commonplace = require('../lib/commonplace');
 
 switch (argv[0]) {
+    case 'clean':
+        console.log('This command has been deprecated by Gulp. Use `make clean` instead.');
+        break;
+    case 'compile':
+        console.log('This command has been deprecated by Gulp. Use `make build` instead.');
+        break;
     case 'extract_strings':
         commonplace.extract_l10n();
+        break;
+    case 'includes':
+        console.log('This command has been deprecated by Gulp. Use `make build` instead.');
         break;
     case 'langpacks':
         commonplace.generate_langpacks();
