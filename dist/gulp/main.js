@@ -161,7 +161,7 @@ gulp.task('imgurls_write', ['css_build'], function() {
 });
 
 
-gulp.task('js_build', function() {
+gulp.task('js_build', ['templates_build'], function() {
     // Uses the AMD optimizer to bundle our JS modules.
     // Will read our RequireJS config to handle shims, paths, and name
     // anonymous modules.
