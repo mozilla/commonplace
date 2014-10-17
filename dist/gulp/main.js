@@ -1,4 +1,5 @@
 var amdOptimize = require('amd-optimize');
+var fs = require('fs');
 var glob = require('glob');
 var gulp = require('gulp');
 var clean = require('gulp-clean');
@@ -15,6 +16,7 @@ var rename = require('gulp-rename');
 var stylus = require('gulp-stylus');
 var webserver = require('gulp-webserver');
 var mergeStream = require('merge-stream');
+var path = require('path');
 var requireDir = require('require-dir');
 var _ = require('underscore');
 var argv = require('yargs').argv;
@@ -125,13 +127,24 @@ gulp.task('css_build', ['css_bundles', 'css_compile'], function() {
     }
     excludes = excludes.map(function(css) { return '!' + config.CSS_DEST_PATH + css; });
 
-    return gulp.src([paths.css].concat(excludes))
+    // Determine which CSS files and which order to concat through index.html.
+    var css_files = [];
+    var data = fs.readFileSync(path.resolve('src', 'index.html'));
+    data = data.toString();
+    var css_pattern = new RegExp('href="/media/css/(.+.css)"', 'g');
+    while (match = css_pattern.exec(data)) {
+        css_files.push(match[1]);
+    }
+    css_src = css_files.map(function(css) {
+        return config.CSS_DEST_PATH + css;
+    });
+
+    return gulp.src(css_src.concat(excludes))
         .pipe(stylus({compress: true}))
         .pipe(imgurlsCachebust())
         .pipe(imgurlsAbsolutify())
         .pipe(minifyCSS())
-        // Order by base styles first.
-        .pipe(order(['base/*.styl.css', '*.styl.css'],
+        .pipe(order(css_files,
                     {base: config.CSS_DEST_PATH}))
         .pipe(concat(paths.include_css))
         .pipe(gulp.dest(config.CSS_DEST_PATH));
