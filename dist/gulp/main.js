@@ -142,7 +142,6 @@ gulp.task('css_build', ['css_bundles', 'css_compile'], function() {
     return gulp.src(css_src.concat(excludes))
         .pipe(stylus({compress: true}))
         .pipe(imgurlsCachebust())
-        .pipe(imgurlsAbsolutify())
         .pipe(minifyCSS())
         .pipe(order(css_files,
                     {base: config.CSS_DEST_PATH}))
@@ -155,6 +154,7 @@ gulp.task('imgurls_write', ['css_build'], function() {
     // imgurls.txt is a list of cachebusted img URLs that is used by Zamboni
     // to generate the appcache manifest.
     return gulp.src(config.CSS_DEST_PATH + paths.include_css)
+        .pipe(imgurlsAbsolutify())
         .pipe(imgurlsParse())
         .pipe(rename('imgurls.txt'))
         .pipe(gulp.dest('src/media'));
