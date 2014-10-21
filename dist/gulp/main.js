@@ -5,8 +5,7 @@ var gulp = require('gulp');
 var clean = require('gulp-clean');
 var concat = require('gulp-concat');
 var eventStream = require('event-stream');
-var uglify = require('gulp-uglify');
-var gulpUtil = require('gulp-util');
+var gulpFile = require('gulp-file');
 var ignore = require('gulp-ignore');
 var insert = require("gulp-insert");
 var install = require("gulp-install");
@@ -14,6 +13,8 @@ var order = require('gulp-order');
 var minifyCSS = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var stylus = require('gulp-stylus');
+var uglify = require('gulp-uglify');
+var gulpUtil = require('gulp-util');
 var webserver = require('gulp-webserver');
 var mergeStream = require('merge-stream');
 var path = require('path');
@@ -161,6 +162,14 @@ gulp.task('imgurls_write', ['css_build'], function() {
 });
 
 
+gulp.task('buildID_write', function() {
+    // Writes build ID to src/media/build_id.txt.
+    var buildID = new Date().getTime().toString();
+    return gulpFile('build_id.txt', buildID)
+        .pipe(gulp.dest('src/media'));
+});
+
+
 gulp.task('js_build', ['templates_build'], function() {
     // Uses the AMD optimizer to bundle our JS modules.
     // Will read our RequireJS config to handle shims, paths, and name
@@ -228,8 +237,8 @@ gulp.task('watch', function() {
 
 gulp.task('default', ['watch', 'serve']);
 gulp.task('update', ['bower_copy', 'require_config']);
-gulp.task('build', ['css_build', 'js_build', 'templates_build',
-                    'imgurls_write']);
+gulp.task('build', ['buildID_write', 'css_build', 'js_build',
+                    'templates_build', 'imgurls_write']);
 
 
 module.exports = {
