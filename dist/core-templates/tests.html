@@ -1,0 +1,70 @@
+<section class="tests prose">
+  <h2>Unit Tests</h2>
+  <progress value="0"></progress>
+  <table>
+    <tr>
+      <th>Started</th>
+      <th class="passed">Passed</th>
+      <th class="failed">Failed</th>
+    </tr>
+    <tr>
+      <td id="c_started">0</td>
+      <td class="passed" id="c_passed">0</td>
+      <td class="failed" id="c_failed">0</td>
+    </tr>
+  </table>
+  <ol class="tests"></ol>
+</section>
+
+<style>
+  .tests {
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 690px;
+  }
+  progress, td {
+    min-width: 150px;
+  }
+  progress {
+    margin: 15px 30px 0 0;
+  }
+  table {
+    margin-top: 15px;
+  }
+  th, td {
+    color: goldenrod;
+    padding: 0 30px;
+  }
+  th:first-child, td:first-child {
+    padding-left: 0;
+  }
+  th {
+    text-align: left;
+  }
+  .passed {
+    color: green;
+  }
+  .failed {
+    color: red;
+  }
+  .tests span {
+    color: #fff;
+    display: inline-block;
+    font-size: 11px;
+    margin-right: 5px;
+    min-width: 50px;
+    padding: 2px 5px;
+    text-align: center;
+  }
+</style>
+
+<script type="text/javascript" src="/tests/commonplace/cache.js"></script>
+<script type="text/javascript" src="/tests/commonplace/l10n.js"></script>
+<script type="text/javascript" src="/tests/commonplace/navigation.js"></script>
+<script type="text/javascript" src="/tests/commonplace/models.js"></script>
+<script type="text/javascript" src="/tests/commonplace/requests.js"></script>
+<script type="text/javascript" src="/tests/commonplace/site_config.js"></script>
+<script type="text/javascript" src="/tests/commonplace/storage.js"></script>
+<script type="text/javascript" src="/tests/commonplace/urls.js"></script>
+<script type="text/javascript" src="/tests/commonplace/user.js"></script>
+<script type="text/javascript" src="/tests/commonplace/utils.js"></script>
