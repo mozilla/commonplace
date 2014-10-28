@@ -24,6 +24,9 @@ before_script:
   - "cd commonplace-template"
   - "npm install -g ../"
   - "make init"
+  - "rm -rf node_modules/commonplace"
+  - "npm install ../"
+  - "make update"
 script:
 # Lint the installation.
   - "commonplace lint"
