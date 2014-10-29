@@ -164,7 +164,7 @@ test('cache rewrite limit', function(done) {
     done();
 });
 
-test('cache rewrite on set', function(done) {
+test('cache rewrite on set', function(done, fail) {
     var rewriters = [
         function(new_key, new_value, c) {
             if (new_key !== 'foo') {
@@ -182,11 +182,12 @@ test('cache rewrite on set', function(done) {
             eq_(cache.get('foo'), 'BAR');
             eq_(cache.get('zip'), 'zap');
             done();
-        }
+        },
+        fail
     );
 });
 
-test('cache chained rewrite on set', function(done) {
+test('cache chained rewrite on set', function(done, fail) {
     var rewriters = [
         function(new_key, new_value, c) {
             if (new_key !== 'foo') {
@@ -212,11 +213,12 @@ test('cache chained rewrite on set', function(done) {
             eq_(cache.get('fart'), 'zap test');
             eq_(cache.get('abc'), 'def');
             done();
-        }
+        },
+        fail
     );
 });
 
-test('cache deep rewrite on set', function(done) {
+test('cache deep rewrite on set', function(done, fail) {
     var rewriters = [
         function(new_key, new_value, c) {
             if (new_key[0] !== 'f') {
@@ -244,11 +246,12 @@ test('cache deep rewrite on set', function(done) {
             eq_(cache.get('foo:deep'), 'asdfbar');
             eq_(cache.get('fart:deep'), 'asdfzap');
             done();
-        }
+        },
+        fail
     );
 });
 
-test('cache get_ttl', function(done) {
+test('cache get_ttl', function(done, fail) {
     mock(
         'cache',
         {
@@ -268,14 +271,18 @@ test('cache get_ttl', function(done) {
                 60 * 60 * 24 * 1000);  // 1 hour in microseconds
             eq_(cache.get_ttl('https://omg.org/api/v1/swag/yolo/foreva/'), null);
             done();
-        }
+        },
+        fail
     );
 });
 
-test('cache flush_signed', function(done) {
+test('cache flush_signed', function(done, fail) {
     mock(
         'cache',
         {
+            settings: {
+                offline_cache_enabled: function () { return false; },
+            },
             user: {
                 logged_in: function() { return true; },
                 get_setting: function(x) {},
@@ -302,11 +309,12 @@ test('cache flush_signed', function(done) {
             feq_(Object.keys(cache.cache), [unsigned_url]);
 
             done();
-        }
+        },
+        fail
     );
 });
 
-test('cache flush_expired', function(done) {
+test('cache flush_expired', function(done, fail) {
     mock(
         'cache',
         {
@@ -348,7 +356,8 @@ test('cache flush_expired', function(done) {
             assert(cache.has('https://omg.org/api/v1/fireplace/search/featured/'));
 
             done();
-        }
+        },
+        fail
     );
 });
 
