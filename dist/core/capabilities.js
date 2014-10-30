@@ -40,6 +40,14 @@ define('capabilities', ['settings'], function(settings) {
                 navigator.userAgent.match(/rv:(\d{2})/)[1] >= 34);
 
     };
+    static_caps.yulelogFxA = function() {
+        return (static_caps.firefoxOS &&
+                settings.switches.indexOf('firefox-accounts') !== -1 &&
+                window.top !== window.self &&
+                navigator.userAgent.match(/rv:(\d{2})/)[1] >= 34 &&
+                // Disable until ready to begin native-fxa testing
+                false);
+    };
     static_caps.fallbackFxA = function() {
         return (!static_caps.nativeFxA() &&
                 settings.switches.indexOf('firefox-accounts') !== -1);
