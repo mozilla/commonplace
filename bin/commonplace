@@ -8,7 +8,6 @@ function help() {
         'Commands:',
         '  extract_strings  This command will extract strings into a `.pot` file.',
         '  langpacks        This command will generate langpacks out of `.po` files.',
-        '  lint             Lints the current project.',
         '  fiddle           Installs Commonplace project dependencies.',
         '',
         'Read more: https://github.com/mozilla/commonplace/wiki/CLI-Tools'
@@ -43,7 +42,7 @@ switch (argv[0]) {
         commonplace.generate_langpacks();
         break;
     case 'lint':
-        commonplace.lint();
+        console.log('This command has been deprecated by Gulp. Use `make lint` instead.');
         break;
     case 'fiddle':
         commonplace.fiddle();
