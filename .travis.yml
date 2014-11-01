@@ -20,8 +20,8 @@ before_script:
   - "git clone git://github.com/n1k0/casperjs.git casperjs"
   - "cd casperjs && git checkout 1.0.2 && cd .."  # Use Homebrew's version of casper
 # Create an installation.
-  - "git clone git://github.com/mozilla/commonplace-template.git"
-  - "cd commonplace-template"
+  - "git clone git://github.com/mozilla/marketplace-template.git"
+  - "cd marketplace-template"
   - "npm install -g ../"
   - "make init"
   - "rm -rf node_modules/commonplace"
