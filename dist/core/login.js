@@ -12,7 +12,7 @@ define('login',
 
     var fxa_popup;
     var pending_logins = [];
-
+    var packaged_origin = "app://packaged." + window.location.host;
     function oncancel() {
         console.log('Login cancelled');
         z.page.trigger('login_cancel');
@@ -141,7 +141,9 @@ define('login',
         } else {
             console.log('Not allowing unverified emails');
         }
-        if (capabilities.fallbackFxA()) {
+        if (capabilities.yulelogFxA()) {
+            window.top.postMessage({type: 'fxa-request'}, packaged_origin);
+        } else if (capabilities.fallbackFxA()) {
             var fxa_url;
             if (user.canMigrate()) {
                 fxa_url = '/fxa-migration';
@@ -176,7 +178,6 @@ define('login',
                     fxa_popup.focus();
                 }
             }, 150);
-
         } else {
             persona_loaded.done(function() {
                 if (capabilities.persona()) {
@@ -194,10 +195,14 @@ define('login',
 
     function gotVerifiedEmail(assertion) {
         console.log('Got assertion from Persona');
-
+        if (capabilities.yulelogFxA()) {
+            var aud = packaged_origin;
+        } else {
+            var aud = window.location.protocol + '//' + window.location.host;
+        }
         var data = {
             assertion: assertion,
-            audience: window.location.protocol + '//' + window.location.host,
+            audience: aud,
             is_mobile: capabilities.mobileLogin()
         };
 
@@ -298,7 +303,25 @@ define('login',
     }
 
     siteConfig.promise.done(function(data) {
-        if (!capabilities.fallbackFxA()) {
+        if (capabilities.yulelogFxA()) {
+            console.log("setting up yulelog-fxa");
+            window.addEventListener('message', function (msg) {
+                if (!msg.data || !msg.data.type || !msg.origin !== packaged_origin) {
+                    return;
+                }
+                console.log("fxa message " + JSON.stringify(msg.data));
+                if (msg.data.type === 'fxa-login') {
+                    gotVerifiedEmail(msg.data.assertion);
+                } else if (msg.data.type === 'fxa-logout') {
+                    logOut();
+                } else if (msg.data.type === 'fxa-cancel') {
+                    oncancel();
+                }
+            });
+            window.top.postMessage({type: 'fxa-watch',
+                                    email: user.get_setting('email') || ''},
+                                   packaged_origin);
+        } else if (!capabilities.fallbackFxA()) {
             // Try to load persona. This is used by persona native/fallback
             // implementation, as well as fxa native.
             loadPersona();
