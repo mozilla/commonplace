@@ -8,7 +8,6 @@ function help() {
         'Commands:',
         '  extract_strings  This command will extract strings into a `.pot` file.',
         '  langpacks        This command will generate langpacks out of `.po` files.',
-        '  fiddle           Installs Commonplace project dependencies.',
         '',
         'Read more: https://github.com/mozilla/commonplace/wiki/CLI-Tools'
     ].join('\n'));
@@ -27,25 +26,27 @@ var commonplace = require('../lib/commonplace');
 
 switch (argv[0]) {
     case 'clean':
-        console.log('This command has been deprecated by Gulp. Use `make clean` instead.');
+        console.log('This command has been removed. Use `make clean` instead.');
         break;
     case 'compile':
-        console.log('This command has been deprecated by Gulp. Use `make build` instead.');
+        console.log('This command has been remove. Use `make build` instead.');
         break;
     case 'extract_strings':
         commonplace.extract_l10n();
         break;
     case 'includes':
-        console.log('This command has been deprecated by Gulp. Use `make build` instead.');
+        console.log('This command has been removed. Use `make build` instead.');
         break;
     case 'langpacks':
         commonplace.generate_langpacks();
         break;
     case 'lint':
-        console.log('This command has been deprecated by Gulp. Use `make lint` instead.');
+        console.log('This command has been removed. Use `make lint` instead.');
         break;
     case 'fiddle':
-        commonplace.fiddle();
+        console.log('This command has been removed. ' +
+                    'Use http://marketplace.readthedocs.org/latest/topics/docker.html ' +
+                    'instead.');
         break;
     case 'help':
         help();
