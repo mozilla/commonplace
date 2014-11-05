@@ -4,13 +4,6 @@ define('capabilities', ['settings'], function(settings) {
         return !!m && m.matches;
     }
 
-    // polyfill window.location.origin only available in FF21+
-    if (!window.location.origin) {
-        window.location.origin = window.location.protocol + '//' +
-            window.location.hostname +
-            (window.location.port ? ':' + window.location.port: '');
-    }
-
     var static_caps = {
         'JSON': window.JSON && typeof JSON.parse === 'function',
         'debug': document.location.href.indexOf('dbg') >= 0,
