@@ -16,6 +16,9 @@
     "jshint": "2.3.x",
     "nunjucks": "1.0.x"
   },
+  "devDependencies": {
+    "casperjs": "^1.1.0-beta3"
+  },
   "bin": {
     "commonplace": "./bin/commonplace"
   },
