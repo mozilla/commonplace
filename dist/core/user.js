@@ -167,8 +167,11 @@ define('user',
     }
 
     function canMigrate() {
-        return (settings.switches.indexOf('fx-accounts-migration') !== -1 &&
-                !doneMigration() && hasLoggedIn());
+        return (migration_enabled() && !doneMigration() && hasLoggedIn());
+    }
+
+    function migration_enabled() {
+        return settings.switches.indexOf('fx-accounts-migration') !== -1;
     }
 
     function hasLoggedIn() {
@@ -201,6 +204,7 @@ define('user',
         has_installed: has_installed,
         has_purchased: has_purchased,
         logged_in: function() {return !!token;},
+        migration_enabled: migration_enabled,
         set_token: set_token,
         update_apps: update_apps,
         update_install: update_install,
