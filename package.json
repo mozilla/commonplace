@@ -1,7 +1,7 @@
 {
   "name": "commonplace",
   "description": "Reusable components for Firefox Marketplace frontend projects.",
-  "version": "0.6.44",
+  "version": "0.6.45",
   "main": "lib/commonplace",
   "preferGlobal": true,
   "repository": {
