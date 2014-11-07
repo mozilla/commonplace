@@ -1,6 +1,7 @@
 (function() {
 var a = require('assert');
 var eq_ = a.eq_;
+var feq_ = a.feq_;
 var contains = a.contains;
 var mock = a.mock;
 var defer = require('defer');
@@ -128,6 +129,46 @@ test('handles no fxa auth data', function(done, fail) {
             promise.then(function() {
                 eq_(settings.fxa_auth_url, undefined);
                 eq_(settings.fxa_auth_state, undefined);
+                done();
+            });
+        },
+        fail
+    );
+});
+
+test('no request is made if data is present in body', function(done, fail) {
+    var settings = {
+        api_cdn_whitelist: {},
+        switches: []
+    };
+    var body_attributes = {
+        settings: {
+            'fxa_auth_url': 'dummy_fxa_auth_url',
+            'fxa_auth_state': 'dummy_fxa_auth_state'
+        },
+        'waffle-switches': ['switch1', 'switch2']
+    };
+    mock(
+        'site_config',
+        {
+            requests: {get: function(url) { fail('We tried to make a request to ' + url); return defer.Deferred(); }},
+            settings: settings,
+            z: {
+                body: {
+                    data: function(key) {
+                        return body_attributes[key];
+                    }
+                },
+                win: {
+                    on: function() {}
+                }
+            }
+        },
+        function(siteConfig) {
+            siteConfig.promise.then(function() {
+                eq_(settings.fxa_auth_url, 'dummy_fxa_auth_url');
+                eq_(settings.fxa_auth_state, 'dummy_fxa_auth_state');
+                feq_(settings.switches, ['switch1', 'switch2']);
                 done();
             });
         },
