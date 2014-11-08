@@ -54,7 +54,11 @@ define('user',
     }
 
     function get_user_setting(setting, default_) {
-        return user_settings[setting] || default_;
+        var val = user_settings[setting];
+        if (val === undefined) {
+            return default_;
+        }
+        return val;
     }
 
     function get_permission(setting) {
