@@ -8,6 +8,12 @@ Necessary Node modules for Marketplace frontend projects. Commonplace includes:
 - Nunjucks template compilation optimizer
 - Localization extraction and language pack generation
 
+## Do I bump bower.json or package.json?
+
+If you are modifying a file in ```dist```, you bump bower.json and tag it.
+
+If you are modifying a file in ```lib```, you bump package.json and publish it.
+
 ## Creating a New Marketplace Frontend Project
 
 Clone the [Marketplace template](https://github.com/mozilla/marketplace-template).
