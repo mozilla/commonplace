@@ -1,8 +1,11 @@
-# Commonplace
-
 [![Build Status](https://travis-ci.org/mozilla/commonplace.png?branch=master)](https://travis-ci.org/mozilla/commonplace)
 
-Necessary Node modules for Marketplace frontend projects. Commonplace includes:
+Necessary Node modules for Marketplace frontend projects.
+
+- [Marketplace frontend documentation](https://marketplace-frontend.readthedocs.org)
+- [Marketplace documentation](https://marketplace.readthedocs.org)
+
+Commonplace includes:
 
 - Common Bower and require.js configuration
 - Nunjucks template compilation optimizer
@@ -19,9 +22,3 @@ If you are modifying a file in ```lib```, you bump package.json and publish it.
 Clone the [Marketplace template](https://github.com/mozilla/marketplace-template).
 
 Run ```make init```. This will download dependencies and set things up.
-
-## I have questions! Where do I look for more information?
-
-You can check out the
-[Wiki](https://github.com/mozilla/commonplace/wiki/_pages), which has plenty of
-documentation about the project and the Commonplace framework.
