@@ -23,7 +23,7 @@ before_script:
   - "git clone git://github.com/mozilla/marketplace-template.git"
   - "cd marketplace-template"
   - "npm install -g ../"
-  - "make init"
+  - "make install"
   - "rm -rf node_modules/commonplace"
   - "npm install ../"
   - "make update"
