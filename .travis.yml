@@ -22,22 +22,14 @@ before_script:
 # Create an installation.
   - "git clone git://github.com/mozilla/marketplace-template.git"
   - "cd marketplace-template"
-  - "npm install -g ../"
+  - "npm install"
   - "make install"
   - "rm -rf node_modules/commonplace"
   - "npm install ../"
-  - "make update"
 script:
-# Lint the installation.
-  - "commonplace lint"
 # Start the webserver.
   - "make serve &"
   - "sleep 3"
-# Run the unit tests.
-  - "DISPLAY=:99.0 ../casperjs/bin/casperjs test ../test"
 # Generate include files and test that they are there.
   - "make build"
   - "test -f src/media/js/include.js"
-# Delete the include files and test that they are gone.
-  - "make clean"
-  - "test ! -f src/media/js/include.js"
