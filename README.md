@@ -1,3 +1,5 @@
+# Commonplace
+
 [![Build Status](https://travis-ci.org/mozilla/commonplace.png?branch=master)](https://travis-ci.org/mozilla/commonplace)
 
 Necessary Node modules for Marketplace frontend projects.
