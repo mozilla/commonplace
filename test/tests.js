@@ -1,6 +1,6 @@
 var assert = require('assert');
 
-var langpacks = require('../lib/generate_langpacks').process_file;
+var i18njs = require('../lib/generate_i18njs').process_file;
 
 
 beforeEach(function() {
@@ -8,9 +8,9 @@ beforeEach(function() {
 });
 
 
-describe('generate_langpacks', function() {
+describe('generate_i18njs', function() {
   it('sets navigator.l10n.language', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.equal(navigator.l10n.language, 'es');
       done();
@@ -18,7 +18,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets localized string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.equal(navigator.l10n.strings['My String'],
                    'El String');
@@ -27,7 +27,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets plural string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.deepEqual(navigator.l10n.strings['Result'],
                        ['Resulto', 'N Resultos']);
@@ -36,7 +36,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets plural string with three forms', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.deepEqual(navigator.l10n.strings['Triple Result'],
                        ['Un Resulto', 'Dos Resultos', 'Resultos']);
@@ -45,7 +45,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets partially localized plural string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.deepEqual(
         navigator.l10n.strings['Partially Localized Plural String'],
@@ -55,7 +55,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets partially identical plural strings', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.ok('Partially Identical Plural String' in navigator.l10n.strings);
       assert.deepEqual(
@@ -68,7 +68,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets no plural form string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.deepEqual(
         navigator.l10n.strings['No Plural Form String'], 'NPFS');
@@ -77,7 +77,7 @@ describe('generate_langpacks', function() {
   });
 
   it('does not set non-localized string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.ok(!('My Non-Localized String' in navigator.l10n.strings));
       done();
@@ -85,7 +85,7 @@ describe('generate_langpacks', function() {
   });
 
   it('does not set non-localized plural string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.ok(!('Non-Localized Result' in navigator.l10n.strings));
       done();
@@ -93,7 +93,7 @@ describe('generate_langpacks', function() {
   });
 
   it('does not set identical string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.ok(!('Identical String' in navigator.l10n.strings));
       done();
@@ -101,7 +101,7 @@ describe('generate_langpacks', function() {
   });
 
   it('does not set identical plural string', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       eval(data);
       assert.ok(!('Identical Plural String' in navigator.l10n.strings));
       done();
@@ -109,7 +109,7 @@ describe('generate_langpacks', function() {
   });
 
   it('sets pluralizer', function(done) {
-    langpacks('test/messages.po', 'es', null, function(err, data) {
+    i18njs('test/messages.po', 'es', null, function(err, data) {
       assert.ok(!navigator.l10n);
       eval(data);
       assert.equal(navigator.l10n.pluralize.toString(),
