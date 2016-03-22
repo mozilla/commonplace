@@ -7,7 +7,7 @@ function help() {
         '',
         'Commands:',
         '  extract_strings  This command will extract strings into a `.pot` file.',
-        '  langpacks        This command will generate langpacks out of `.po` files.',
+        '  i18njs           This command will generate translations out of `.po` files.',
         '',
         'Read more: https://github.com/mozilla/commonplace/wiki/CLI-Tools'
     ].join('\n'));
@@ -38,7 +38,8 @@ switch (argv[0]) {
         console.log('This command has been removed. Use `make build` instead.');
         break;
     case 'langpacks':
-        commonplace.generate_langpacks();
+    case 'i18njs':
+        commonplace.generate_i18njs();
         break;
     case 'lint':
         console.log('This command has been removed. Use `make lint` instead.');
